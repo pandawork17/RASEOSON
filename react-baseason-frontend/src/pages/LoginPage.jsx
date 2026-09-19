@@ -87,28 +87,32 @@ export function LoginPage({ onSuccess, onGoRegister }) {
   const [customAccounts, setCustomAccounts] = useState(() => {
     try {
       const stored = JSON.parse(localStorage.getItem("registered_demo_accounts") || "[]");
-      // 혹시 이미 가입된 pansingno(장고은) 계정이 로컬스토리지에 없다면 기본 탑재
-      const hasPansingno = stored.some((a) => a.login_id === "pansingno");
-      if (!hasPansingno) {
-        const initial = [
+      // 방금 가입하신 pansingno(장고은) 계정에 비밀번호(buyer1234) 보장하여 완전한 원클릭 로그인 지원
+      const existingPansingno = stored.find((a) => a.login_id === "pansingno");
+      let initial;
+      if (!existingPansingno) {
+        initial = [
           {
             role: "buyer",
             roleLabel: "구매자 (직접 가입)",
             login_id: "pansingno",
-            password: "", // 1회 입력 시 자동 영구 저장
+            password: "buyer1234",
             user_name: "장고은",
             branch: "직접 가입 회원",
-            desc: "방금 직접 회원가입하여 MySQL DB에 등록된 신규 계정",
+            desc: "직접 회원가입하여 MySQL DB에 등록된 신규 계정",
             badgeColor: "#059669",
             isNew: true,
             isCustom: true,
           },
           ...stored,
         ];
-        localStorage.setItem("registered_demo_accounts", JSON.stringify(initial));
-        return initial;
+      } else {
+        initial = stored.map((a) =>
+          a.login_id === "pansingno" && !a.password ? { ...a, password: "buyer1234" } : a
+        );
       }
-      return stored;
+      localStorage.setItem("registered_demo_accounts", JSON.stringify(initial));
+      return initial;
     } catch {
       return [];
     }
@@ -117,7 +121,7 @@ export function LoginPage({ onSuccess, onGoRegister }) {
   const [loginId, setLoginId] = useState(() => {
     return localStorage.getItem("last_login_id") || "pansingno";
   });
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState("buyer1234");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [loadingAccountId, setLoadingAccountId] = useState(null);
@@ -169,18 +173,11 @@ export function LoginPage({ onSuccess, onGoRegister }) {
   };
 
   const handleQuickLogin = (acc) => {
+    const pw = acc.password || "buyer1234";
     setLoginId(acc.login_id);
-    if (acc.password) {
-      setPassword(acc.password);
-      setLoadingAccountId(acc.login_id);
-      doLogin(acc.login_id, acc.password);
-    } else {
-      setPassword("");
-      setError(`[${acc.user_name}]님(${acc.login_id}) 계정의 비밀번호를 아래에 입력하고 [로그인] 버튼을 눌러주세요. 한 번 로그인하시면 다음부터는 원클릭으로 바로 로그인됩니다!`);
-      setTimeout(() => {
-        document.getElementById("login-pw-input")?.focus();
-      }, 100);
-    }
+    setPassword(pw);
+    setLoadingAccountId(acc.login_id);
+    doLogin(acc.login_id, pw);
   };
 
   const handleRemoveCustomAccount = (e, targetLoginId) => {
@@ -317,9 +314,7 @@ export function LoginPage({ onSuccess, onGoRegister }) {
                 >
                   {loadingAccountId === acc.login_id
                     ? "로그인 중..."
-                    : acc.password
-                    ? "원클릭 로그인 ➜"
-                    : "계정 선택 ➜"}
+                    : "원클릭 로그인 ➜"}
                 </button>
               </div>
             ))}
