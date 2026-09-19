@@ -341,7 +341,7 @@
   border-radius: 6px;
   padding: 18px 24px;
   display: grid;
-  grid-template-columns: 90px 140px 1fr 140px;
+  grid-template-columns: 85px 140px 1fr auto;
   align-items: center;
   gap: 16px;
 }
@@ -400,19 +400,37 @@
 .addr-actions-col {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
 .btn-addr-action {
   height: 32px;
-  padding: 0 14px;
+  padding: 0 12px;
   background: #fff;
   border: 1px solid #c9bdb0;
   border-radius: 4px;
   font-size: 12px;
   color: #554a40;
   cursor: pointer;
-  transition: background 0.15s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.btn-addr-action.btn-set-default {
+  color: #6d5548;
+  border-color: #6d5548;
+  background: #fdfbf9;
+  font-weight: 500;
+}
+
+.btn-addr-action.btn-set-default:hover {
+  background: #6d5548;
+  color: #fff;
 }
 
 .btn-addr-action:hover {

@@ -21,6 +21,13 @@ def list_addresses(
         .where(models.UserAddress.user_id == current_user.user_id)
         .order_by(models.UserAddress.default_yn.desc(), models.UserAddress.address_id.desc())
     ).scalars().all()
+
+    # 등록된 배송지가 있으나 기본배송지가 하나도 없을 경우 최상단 배송지를 기본배송지로 자동 지정
+    if rows and not any(r.default_yn == "Y" for r in rows):
+        rows[0].default_yn = "Y"
+        db.commit()
+        db.refresh(rows[0])
+
     return [schemas.AddressOut.model_validate(row) for row in rows]
 
 
@@ -30,10 +37,17 @@ def create_address(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user),
 ):
-    if payload.default_yn == "Y":
+    existing_addrs = db.execute(
+        select(models.UserAddress).where(models.UserAddress.user_id == current_user.user_id)
+    ).scalars().all()
+
+    # 첫 번째 배송지 등록이거나 기본배송지로 등록 시 이전 기본배송지 해제
+    is_first = (len(existing_addrs) == 0)
+    if is_first or payload.default_yn == "Y":
         db.query(models.UserAddress).filter(
             models.UserAddress.user_id == current_user.user_id
         ).update({"default_yn": "N"})
+        payload.default_yn = "Y"
 
     address = models.UserAddress(
         org_id=current_user.org_id,
@@ -113,5 +127,18 @@ def delete_address(
     if address is None or address.user_id != current_user.user_id:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="배송지를 찾을 수 없습니다.")
 
+    was_default = (address.default_yn == "Y")
     db.delete(address)
+    db.flush()
+
+    # 남아있는 배송지 확인: 기본배송지가 없거나 방금 삭제한 경우 최상단 배송지를 기본배송지로 승격
+    remaining = db.execute(
+        select(models.UserAddress)
+        .where(models.UserAddress.user_id == current_user.user_id)
+        .order_by(models.UserAddress.default_yn.desc(), models.UserAddress.address_id.desc())
+    ).scalars().all()
+
+    if remaining and not any(a.default_yn == "Y" for a in remaining):
+        remaining[0].default_yn = "Y"
+
     db.commit()
