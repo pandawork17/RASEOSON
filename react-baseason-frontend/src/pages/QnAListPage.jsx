@@ -1,25 +1,33 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { CommunitySidebar } from "../components/CommunitySidebar";
 
-const INITIAL_QNA_ITEMS = [
-  { id: 12, title: "사이즈 문의드립니다.", category: "상품 문의", date: "2025. 06. 11", status: "COMPLETED" },
-  { id: 11, title: "결제 취소 가능한가요?", category: "주문/결제", date: "2025. 06. 10", status: "WAITING" },
-  { id: 10, title: "교환 신청은 어떻게 하나요?", category: "교환/반품", date: "2025. 06. 08", status: "COMPLETED" },
-  { id: 9, title: "배송 언제 되나요?", category: "배송", date: "2025. 06. 07", status: "COMPLETED" },
-  { id: 8, title: "재입고 일정이 궁금합니다.", category: "상품 문의", date: "2025. 06. 05", status: "COMPLETED" },
-  { id: 7, title: "주문한 상품 색상 변경 가능할까요?", category: "주문/결제", date: "2025. 06. 03", status: "COMPLETED" },
-  { id: 6, title: "환불 처리 기간은 얼마나 걸리나요?", category: "교환/반품", date: "2025. 05. 30", status: "COMPLETED" },
-  { id: 5, title: "상품 실측 사이즈 문의입니다.", category: "상품 문의", date: "2025. 05. 28", status: "COMPLETED" },
-  { id: 4, title: "선물 포장 가능한가요?", category: "기타", date: "2025. 05. 25", status: "COMPLETED" },
-];
+const PAGE_SIZE = 10;
+
+function parseQnADate(item) {
+  if (!item) return 0;
+  if (item.date) {
+    const cleaned = item.date.replace(/[^\d.]/g, "");
+    const parts = cleaned.split(".").filter(Boolean);
+    if (parts.length >= 3) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      const time = new Date(y, m, d).getTime();
+      return isNaN(time) ? (item.id || 0) : time * 1000 + (item.id || 0);
+    }
+  }
+  return item.id || 0;
+}
 
 export function QnAListPage({
-  qnaList = INITIAL_QNA_ITEMS,
+  qnaList = [],
   onGoWrite,
+  onSelectQnA,
   onNotice,
 }) {
   const [selectedTab, setSelectedTab] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState("desc"); // 'desc': 최신순(내림차순), 'asc': 과거순(오름차순)
 
   const tabs = [
     { key: "ALL", label: "전체", count: qnaList.length },
@@ -29,9 +37,33 @@ export function QnAListPage({
     { key: "교환/반품", label: "교환/반품", count: qnaList.filter((q) => q.category === "교환/반품").length },
   ];
 
-  const filteredItems = selectedTab === "ALL"
-    ? qnaList
-    : qnaList.filter((q) => q.category === selectedTab);
+  // 카테고리 필터링
+  const filteredItems = useMemo(() => {
+    return selectedTab === "ALL"
+      ? qnaList
+      : qnaList.filter((q) => q.category === selectedTab);
+  }, [qnaList, selectedTab]);
+
+  // 작성일 순 정렬
+  const sortedItems = useMemo(() => {
+    return [...filteredItems].sort((a, b) => {
+      const valA = parseQnADate(a);
+      const valB = parseQnADate(b);
+      return sortOrder === "desc" ? valB - valA : valA - valB;
+    });
+  }, [filteredItems, sortOrder]);
+
+  // 페이지네이션 계산
+  const totalPages = Math.max(1, Math.ceil(sortedItems.length / PAGE_SIZE));
+  const pagedItems = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return sortedItems.slice(start, start + PAGE_SIZE);
+  }, [sortedItems, currentPage]);
+
+  const toggleSort = () => {
+    setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"));
+    setCurrentPage(1);
+  };
 
   return (
     <main className="mypage">
@@ -58,21 +90,41 @@ export function QnAListPage({
               </button>
             </div>
 
-            {/* 탭 목록 */}
-            <div className="qna-tab-filter-bar">
-              {tabs.map((tab) => (
+            {/* 필터 탭 & 정렬 버튼 바 */}
+            <div className="qna-filter-row">
+              <div className="qna-tab-filter-bar">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    className={`qna-tab-btn ${selectedTab === tab.key ? "active" : ""}`}
+                    onClick={() => {
+                      setSelectedTab(tab.key);
+                      setCurrentPage(1);
+                    }}
+                  >
+                    {tab.label} ({tab.count})
+                  </button>
+                ))}
+              </div>
+
+              {/* 작성일 정렬 버튼 */}
+              <div className="qna-sort-controls">
                 <button
-                  key={tab.key}
                   type="button"
-                  className={`qna-tab-btn ${selectedTab === tab.key ? "active" : ""}`}
-                  onClick={() => {
-                    setSelectedTab(tab.key);
-                    setCurrentPage(1);
-                  }}
+                  className="btn-qna-sort"
+                  onClick={toggleSort}
+                  title="작성일 정렬 순서 변경"
                 >
-                  {tab.label} ({tab.count})
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "4px" }}>
+                    <path d="m3 16 4 4 4-4" />
+                    <path d="M7 20V4" />
+                    <path d="m21 8-4-4-4 4" />
+                    <path d="M17 4v16" />
+                  </svg>
+                  <span>작성일 {sortOrder === "desc" ? "내림차순 (최신순) ↓" : "오름차순 (과거순) ↑"}</span>
                 </button>
-              ))}
+              </div>
             </div>
 
             {/* Q&A 게시판 테이블 */}
@@ -83,58 +135,76 @@ export function QnAListPage({
                     <th className="th-num">번호</th>
                     <th className="th-title">제목</th>
                     <th className="th-cat">카테고리</th>
-                    <th className="th-date">작성일</th>
+                    <th className="th-date" onClick={toggleSort} style={{ cursor: "pointer" }} title="클릭 시 정렬 순서 변경">
+                      작성일 {sortOrder === "desc" ? "▼" : "▲"}
+                    </th>
                     <th className="th-status">답변 상태</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredItems.map((item) => (
-                    <tr key={item.id}>
-                      <td className="td-num">{item.id}</td>
-                      <td className="td-title">{item.title}</td>
-                      <td className="td-cat">{item.category}</td>
-                      <td className="td-date">{item.date}</td>
-                      <td className="td-status">
-                        {item.status === "COMPLETED" ? (
-                          <span className="badge-qna-done">답변완료</span>
-                        ) : (
-                          <span className="badge-qna-waiting">답변대기</span>
-                        )}
+                  {pagedItems.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="td-empty">
+                        등록된 문의 내역이 없습니다.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    pagedItems.map((item) => (
+                      <tr
+                        key={item.id}
+                        className="clickable-qna-row"
+                        onClick={() => onSelectQnA && onSelectQnA(item)}
+                      >
+                        <td className="td-num">{item.id}</td>
+                        <td className="td-title">
+                          <span className="qna-table-title-link">{item.title}</span>
+                          {item.photos && item.photos.length > 0 && (
+                            <span className="qna-icon-photo" title="사진 첨부됨"> 📷</span>
+                          )}
+                        </td>
+                        <td className="td-cat">{item.category}</td>
+                        <td className="td-date">{item.date}</td>
+                        <td className="td-status">
+                          {item.status === "COMPLETED" ? (
+                            <span className="badge-qna-done">답변완료</span>
+                          ) : (
+                            <span className="badge-qna-waiting">답변대기</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
 
-            {/* 페이지네이션 */}
+            {/* 페이지네이션 (10개 초과 시에만 다음 페이지 노출) */}
             <div className="figma-pagination">
               <button
                 type="button"
                 className="page-nav-arrow"
-                disabled={currentPage === 1}
+                disabled={currentPage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
                 &lt;
               </button>
-              <button
-                type="button"
-                className={`page-num-btn ${currentPage === 1 ? "active" : ""}`}
-                onClick={() => setCurrentPage(1)}
-              >
-                1
-              </button>
-              <button
-                type="button"
-                className={`page-num-btn ${currentPage === 2 ? "active" : ""}`}
-                onClick={() => setCurrentPage(2)}
-              >
-                2
-              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  className={`page-num-btn ${currentPage === pageNum ? "active" : ""}`}
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              ))}
+
               <button
                 type="button"
                 className="page-nav-arrow"
-                onClick={() => setCurrentPage(2)}
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               >
                 &gt;
               </button>
@@ -148,15 +218,15 @@ export function QnAListPage({
                   <strong>문의하기 전 확인해주세요!</strong>
                 </div>
                 <ul className="notice-items">
-                  <li>주문, 배송, 교환/반품 관련 문의는 주문번호를 함께 남겨주시면 더 정확한 답변이 가능합니다.</li>
-                  <li>운영시간: 평일 09:00 - 18:00 (주말, 공휴일 휴무)</li>
-                  <li>자주 묻는 질문에서 원하시는 답을 빠르게 찾을 수 있습니다.</li>
+                  <li>자주 묻는 질문(FAQ)을 확인하시면 더 빠르게 해결하실 수 있습니다.</li>
+                  <li>주문/배송 관련 문의는 주문번호를 함께 기재해주시면 더욱 빠른 처리가 가능합니다.</li>
+                  <li>답변이 등록된 후에도 추가 문의사항이 있으시면 언제든지 새로운 글을 등록해주세요.</li>
                 </ul>
               </div>
               <button
                 type="button"
                 className="btn-go-faq"
-                onClick={() => alert("FAQ 페이지 준비 중입니다.")}
+                onClick={() => alert("자주 묻는 질문(FAQ) 페이지를 준비 중입니다.")}
               >
                 자주 묻는 질문 바로가기 &gt;
               </button>

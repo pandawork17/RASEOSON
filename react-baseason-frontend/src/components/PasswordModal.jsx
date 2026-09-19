@@ -109,3 +109,4 @@ export function PasswordModal({ isOpen, onClose, onChangePassword }) {
     </div>
   );
 }
+

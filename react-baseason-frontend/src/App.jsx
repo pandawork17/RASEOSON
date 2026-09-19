@@ -12,6 +12,7 @@ import { OrderHistoryPage } from "./pages/OrderHistoryPage";
 import { OrderDetailPage } from "./pages/OrderDetailPage";
 import { QnAListPage } from "./pages/QnAListPage";
 import { QnAWritePage } from "./pages/QnAWritePage";
+import { QnADetailPage } from "./pages/QnADetailPage";
 
 function App() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -43,16 +44,106 @@ function App() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [selectedRefund, setSelectedRefund] = useState(null);
   const [refundTargetOrder, setRefundTargetOrder] = useState(null);
+  const [selectedQnA, setSelectedQnA] = useState(null);
+  const [editingQnA, setEditingQnA] = useState(null);
   const [qnaList, setQnaList] = useState([
-    { id: 12, title: "사이즈 문의드립니다.", category: "상품 문의", date: "2025. 06. 11", status: "COMPLETED" },
-    { id: 11, title: "결제 취소 가능한가요?", category: "주문/결제", date: "2025. 06. 10", status: "WAITING" },
-    { id: 10, title: "교환 신청은 어떻게 하나요?", category: "교환/반품", date: "2025. 06. 08", status: "COMPLETED" },
-    { id: 9, title: "배송 언제 되나요?", category: "배송", date: "2025. 06. 07", status: "COMPLETED" },
-    { id: 8, title: "재입고 일정이 궁금합니다.", category: "상품 문의", date: "2025. 06. 05", status: "COMPLETED" },
-    { id: 7, title: "주문한 상품 색상 변경 가능할까요?", category: "주문/결제", date: "2025. 06. 03", status: "COMPLETED" },
-    { id: 6, title: "환불 처리 기간은 얼마나 걸리나요?", category: "교환/반품", date: "2025. 05. 30", status: "COMPLETED" },
-    { id: 5, title: "상품 실측 사이즈 문의입니다.", category: "상품 문의", date: "2025. 05. 28", status: "COMPLETED" },
-    { id: 4, title: "선물 포장 가능한가요?", category: "기타", date: "2025. 05. 25", status: "COMPLETED" },
+    {
+      id: 12,
+      title: "사이즈 문의드립니다.",
+      category: "상품 문의",
+      date: "2025. 06. 11",
+      status: "COMPLETED",
+      author: "김*늘",
+      content: "평소 240 신는데 발볼이 좀 넓은 편입니다. 정사이즈로 가면 될까요? 아니면 한 치수 크게 주문해야 편할까요?",
+      answer: "안녕하세요 고객님, 베이스시즌 고객센터입니다.\n해당 제품은 기본 정사이즈보다 발볼이 다소 타이트하게 제작되었습니다. 발볼이 넓으신 경우 한 치수(5mm) 크게 주문하시는 것을 추천해 드립니다. 추가 문의사항이 있으시면 언제든지 편하게 문의 남겨주세요.",
+      answerDate: "2025. 06. 12",
+    },
+    {
+      id: 11,
+      title: "결제 취소 가능한가요?",
+      category: "주문/결제",
+      date: "2025. 06. 10",
+      status: "WAITING",
+      author: "이*원",
+      content: "방금 전에 주문을 완료했는데 결제 수단을 변경하고 싶어서 취소하려고 합니다. 배송 준비 전이면 바로 취소 가능한가요?",
+    },
+    {
+      id: 10,
+      title: "교환 신청은 어떻게 하나요?",
+      category: "교환/반품",
+      date: "2025. 06. 08",
+      status: "COMPLETED",
+      author: "박*호",
+      content: "어제 택배 수령했는데 색상이 생각했던 것과 조금 달라서 다른 색상으로 교환하고 싶습니다. 어떻게 접수하면 되나요?",
+      answer: "안녕하세요 고객님, 베이스시즌입니다.\n마이페이지 > 주문내역에서 수령하신 주문건의 [상세보기]를 클릭하신 후 [환불/교환 신청하기]를 통해 신청해 주시면 택배 기사님 방문 수거가 접수됩니다. 상품이 입고되는 대로 확인 후 새 제품으로 발송해 드리겠습니다.",
+      answerDate: "2025. 06. 08",
+    },
+    {
+      id: 9,
+      title: "배송 언제 되나요?",
+      category: "배송",
+      date: "2025. 06. 07",
+      status: "COMPLETED",
+      author: "최*진",
+      content: "주문한 지 이틀 정도 되었는데 배송 출발 언제쯤 되는지 배송 일정 문의드립니다.",
+      answer: "안녕하세요 고객님, 베이스시즌입니다.\n주문하신 상품은 금일 오후 대한통운 택배를 통해 출고 완료되었습니다. 마이페이지 배송조회에서 송장번호 확인이 가능합니다.",
+      answerDate: "2025. 06. 07",
+    },
+    {
+      id: 8,
+      title: "재입고 일정이 궁금합니다.",
+      category: "상품 문의",
+      date: "2025. 06. 05",
+      status: "COMPLETED",
+      author: "정*우",
+      content: "블랙 색상 L 사이즈 품절이던데 혹시 이번 달 안에 재입고 예정이 있을까요?",
+      answer: "안녕하세요 고객님, 베이스시즌입니다.\n해당 상품은 6월 말경 재입고될 예정입니다. 입고 즉시 판매 페이지가 활성화될 예정이오니 참고 부탁드립니다.",
+      answerDate: "2025. 06. 06",
+    },
+    {
+      id: 7,
+      title: "주문한 상품 색상 변경 가능할까요?",
+      category: "주문/결제",
+      date: "2025. 06. 03",
+      status: "COMPLETED",
+      author: "강*민",
+      content: "화이트로 주문했는데 베이지 색상으로 변경하고 싶습니다. 아직 발송 전이면 변경 부탁드립니다.",
+      answer: "안녕하세요 고객님, 고객님의 주문건은 요청하신 베이지 색상으로 안전하게 변경하여 출고 처리 도와드렸습니다.",
+      answerDate: "2025. 06. 03",
+    },
+    {
+      id: 6,
+      title: "환불 처리 기간은 얼마나 걸리나요?",
+      category: "교환/반품",
+      date: "2025. 05. 30",
+      status: "COMPLETED",
+      author: "윤*서",
+      content: "반품 상품 기사님께서 수거해 가셨는데 환불금 입금까지 보통 며칠 정도 걸릴까요?",
+      answer: "안녕하세요 고객님, 반품 상품 물류센터 입고 및 검수 완료 후 영업일 기준 2~3일 내에 카드 취소 또는 환불 계좌로 입금 처리됩니다.",
+      answerDate: "2025. 05. 31",
+    },
+    {
+      id: 5,
+      title: "상품 실측 사이즈 문의입니다.",
+      category: "상품 문의",
+      date: "2025. 05. 28",
+      status: "COMPLETED",
+      author: "한*정",
+      content: "M 사이즈 총장이랑 가슴 단면 실측이 상세페이지와 동일한가요? 약간 오차가 있을 수 있는지 문의드립니다.",
+      answer: "안녕하세요 고객님, 측정 방식에 따라 1~2cm 내외의 미세한 오차가 발생할 수 있습니다. 구매 시 참고 부탁드립니다.",
+      answerDate: "2025. 05. 28",
+    },
+    {
+      id: 4,
+      title: "선물 포장 가능한가요?",
+      category: "기타",
+      date: "2025. 05. 25",
+      status: "COMPLETED",
+      author: "오*현",
+      content: "지인 선물용으로 구매하려고 하는데 별도의 선물용 쇼핑백이나 포장 박스가 제공되는지 문의드립니다.",
+      answer: "안녕하세요 고객님, 결제 시 배송 요청사항에 '선물 포장 요청'을 남겨주시면 브랜드 전용 선물 박스와 쇼핑백을 함께 동봉하여 발송해 드립니다.",
+      answerDate: "2025. 05. 26",
+    },
   ]);
 
   // ---- checkout flow --------------------------------------------------
@@ -326,20 +417,60 @@ function App() {
 
   const goQnA = () => {
     closeOverlays();
+    setSelectedQnA(null);
+    setEditingQnA(null);
     setPage("qna");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const goQnAWrite = () => {
     closeOverlays();
+    setEditingQnA(null);
     setPage("qna-write");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const submitQnA = (newQnA) => {
-    const nextId = qnaList.length > 0 ? Math.max(...qnaList.map((q) => q.id)) + 1 : 1;
-    setQnaList((prev) => [{ ...newQnA, id: nextId }, ...prev]);
+  const goQnADetail = (qna) => {
+    closeOverlays();
+    setSelectedQnA(qna);
+    setPage("qna-detail");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goQnAEdit = (qna) => {
+    closeOverlays();
+    setEditingQnA(qna);
+    setPage("qna-write");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDeleteQnA = (id) => {
+    setQnaList((prev) => prev.filter((q) => q.id !== id));
+    setSelectedQnA(null);
     setPage("qna");
+    window.alert("문의가 정상적으로 삭제되었습니다.");
+  };
+
+  const submitQnA = (qnaData) => {
+    if (qnaData.id) {
+      // 수정
+      setQnaList((prev) => prev.map((q) => (q.id === qnaData.id ? qnaData : q)));
+      setSelectedQnA(qnaData);
+      setEditingQnA(null);
+      setPage("qna-detail");
+    } else {
+      // 신규 등록
+      const nextId = qnaList.length > 0 ? Math.max(...qnaList.map((q) => q.id)) + 1 : 1;
+      const newItem = {
+        ...qnaData,
+        id: nextId,
+        author: authUser?.user_name || "고객님",
+      };
+      setQnaList((prev) => [newItem, ...prev]);
+      setSelectedQnA(newItem);
+      setEditingQnA(null);
+      setPage("qna-detail");
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -593,13 +724,25 @@ function App() {
         <QnAListPage
           qnaList={qnaList}
           onGoWrite={goQnAWrite}
+          onSelectQnA={goQnADetail}
+          onNotice={() => window.alert("공지사항을 준비 중입니다.")}
+        />
+      )}
+
+      {page === "qna-detail" && selectedQnA && (
+        <QnADetailPage
+          qna={selectedQnA}
+          onBack={goQnA}
+          onEdit={goQnAEdit}
+          onDelete={handleDeleteQnA}
           onNotice={() => window.alert("공지사항을 준비 중입니다.")}
         />
       )}
 
       {page === "qna-write" && (
         <QnAWritePage
-          onCancel={goQnA}
+          editingQnA={editingQnA}
+          onCancel={editingQnA ? () => setPage("qna-detail") : goQnA}
           onSubmit={submitQnA}
           onNotice={() => window.alert("공지사항을 준비 중입니다.")}
         />

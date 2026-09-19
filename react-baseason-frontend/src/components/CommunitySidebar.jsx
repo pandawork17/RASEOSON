@@ -21,3 +21,4 @@ export function CommunitySidebar({ active = "qna", onNotice, onQnA }) {
     </aside>
   );
 }
+

@@ -2,14 +2,17 @@ import { useState } from "react";
 import { CommunitySidebar } from "../components/CommunitySidebar";
 
 export function QnAWritePage({
+  editingQnA = null,
   onCancel,
   onSubmit,
   onNotice,
 }) {
-  const [category, setCategory] = useState("상품 문의");
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [photos, setPhotos] = useState([]);
+  const isEdit = Boolean(editingQnA);
+
+  const [category, setCategory] = useState(editingQnA?.category || "상품 문의");
+  const [title, setTitle] = useState(editingQnA?.title || "");
+  const [content, setContent] = useState(editingQnA?.content || "");
+  const [photos, setPhotos] = useState(editingQnA?.photos || []);
   const [submitting, setSubmitting] = useState(false);
 
   const categories = ["상품 문의", "주문/결제", "배송", "교환/반품", "환불", "기타"];
@@ -44,24 +47,35 @@ export function QnAWritePage({
 
     setSubmitting(true);
     setTimeout(() => {
-      onSubmit({
-        category,
-        title: title.trim(),
-        content: content.trim(),
-        photos,
-        date: new Date().toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }),
-        status: "WAITING",
-      });
+      if (isEdit) {
+        onSubmit({
+          ...editingQnA,
+          category,
+          title: title.trim(),
+          content: content.trim(),
+          photos,
+        });
+        alert("문의가 정상적으로 수정되었습니다.");
+      } else {
+        onSubmit({
+          category,
+          title: title.trim(),
+          content: content.trim(),
+          photos,
+          date: new Date().toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" }),
+          status: "WAITING",
+        });
+        alert("문의가 정상적으로 등록되었습니다.");
+      }
       setSubmitting(false);
-      alert("문의가 정상적으로 등록되었습니다.");
-    }, 300);
+    }, 250);
   };
 
   return (
     <main className="mypage">
       <div className="mypage-inner">
         <div className="mypage-breadcrumb">
-          HOME <span>&gt;</span> 커뮤니티 <span>&gt;</span> Q&A <span>&gt;</span> 문의하기
+          HOME <span>&gt;</span> 커뮤니티 <span>&gt;</span> Q&A <span>&gt;</span> {isEdit ? "문의 수정" : "문의하기"}
         </div>
 
         <div className="mypage-layout">
@@ -70,7 +84,7 @@ export function QnAWritePage({
           <section className="mypage-content qna-write-section">
             <div className="mypage-heading">
               <div>
-                <h1>Q&A 문의하기</h1>
+                <h1>{isEdit ? "Q&A 문의 수정" : "Q&A 문의하기"}</h1>
                 <p>궁금하신 내용을 남겨주시면 빠르게 답변드리겠습니다.</p>
               </div>
             </div>
@@ -157,7 +171,7 @@ export function QnAWritePage({
                           <div className="photo-slot-box" key={slotIdx}>
                             {photo ? (
                               <div className="slot-preview">
-                                <img src={photo.url} alt={`첨부 ${slotIdx + 1}`} />
+                                <img src={photo.url || photo} alt={`첨부 ${slotIdx + 1}`} />
                                 <button
                                   type="button"
                                   className="btn-slot-remove"
@@ -205,7 +219,7 @@ export function QnAWritePage({
                   className="btn-action-submit"
                   disabled={submitting}
                 >
-                  {submitting ? "등록 중..." : "등록하기"}
+                  {submitting ? (isEdit ? "수정 중..." : "등록 중...") : (isEdit ? "수정 완료" : "등록하기")}
                 </button>
               </div>
             </form>

@@ -104,3 +104,4 @@ export function refundStatusLabel(status) {
   };
   return labels[status] || status || "환불 접수";
 }
+
