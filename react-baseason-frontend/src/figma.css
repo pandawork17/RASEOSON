@@ -1784,3 +1784,46 @@
   color: #fff;
 }
 
+/* --- Notice Page Styles --- */
+.badge-notice-pinned {
+  display: inline-block;
+  padding: 3px 10px;
+  background: #6d5548;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 3px;
+  letter-spacing: -0.2px;
+}
+
+.pinned-notice-row {
+  background-color: #faf7f3;
+}
+
+.pinned-notice-row:hover {
+  background-color: #f3ece3;
+}
+
+.pinned-text {
+  font-weight: 600;
+  color: #222;
+}
+
+.notice-title-text {
+  font-size: 13px;
+  color: #333;
+}
+
+.clickable-qna-row:hover .notice-title-text {
+  color: #6d5548;
+  text-decoration: underline;
+}
+
+.notice-body-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #333;
+  white-space: pre-wrap;
+  min-height: 180px;
+}
+

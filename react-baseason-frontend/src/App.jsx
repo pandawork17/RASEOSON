@@ -14,6 +14,8 @@ import { QnAListPage } from "./pages/QnAListPage";
 import { QnAWritePage } from "./pages/QnAWritePage";
 import { QnADetailPage } from "./pages/QnADetailPage";
 import { MyQnAPage } from "./pages/MyQnAPage";
+import { NoticeListPage } from "./pages/NoticeListPage";
+import { NoticeDetailPage } from "./pages/NoticeDetailPage";
 
 function App() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -183,6 +185,51 @@ function App() {
       isMine: false,
     },
   ]);
+
+  // ---- notices --------------------------------------------------------
+  const [noticeList, setNoticeList] = useState([
+    {
+      id: 4,
+      isPinned: true,
+      badge: "공지",
+      title: "환불 정책 안내",
+      date: "2025. 06. 01",
+      views: 1253,
+      author: "베이스시즌 관리자",
+      content: `안녕하세요, 베이스시즌입니다.\n\n베이스시즌을 이용해 주시는 고객님들께 감사드리며, 환불 및 교환/반품 정책에 대해 안내드립니다.\n\n1. 환불/교환 접수 가능 기간\n- 상품 수령일로부터 7일 이내에 마이페이지 > 주문내역에서 접수 가능합니다.\n- 단순 변심의 경우 미착용 및 상품 택(Tag)과 포장 상태가 보존된 상태여야 합니다.\n\n2. 반품 배송비 안내\n- 단순 변심 반품: 왕복 배송비 6,000원 (고객 부담)\n- 상품 불량 및 오배송: 배송비 전액 베이스시즌 부담\n\n3. 환불 처리 절차\n- 접수 ➜ 택배사 자동 회수 접수(영업일 1~3일) ➜ 물류센터 입고 및 검수 ➜ 최종 환불 승인\n- 환불 승인 후 결제 수단에 따라 카드 취소는 2~5영업일, 무통장 입금은 익일 처리됩니다.\n\n더 자세한 문의는 Q&A 게시판 또는 고객센터로 연락 주시기 바랍니다.\n감사합니다.`,
+    },
+    {
+      id: 3,
+      isPinned: false,
+      badge: null,
+      title: "여름 시즌 배송 지연 안내",
+      date: "2025. 05. 28",
+      views: 842,
+      author: "베이스시즌 물류팀",
+      content: `안녕하세요, 베이스시즌 물류센터입니다.\n\n현재 여름 신상품 출시 및 주문량 폭주로 인해 일부 품목의 출고가 평소보다 1~2일 지연되고 있습니다.\n\n- 지연 품목: 2025 Summer 린넨 컬렉션 전 품목\n- 정상 출고 예정일: 주문 결제 완료 후 순차 출고 (영업일 기준 2~3일 소요)\n\n최대한 빠르고 안전하게 배송해 드릴 수 있도록 최선을 다하겠습니다.\n배송 지연으로 불편을 드려 대단히 죄송합니다.`,
+    },
+    {
+      id: 2,
+      isPinned: false,
+      badge: null,
+      title: "회원 등급 혜택 안내",
+      date: "2025. 05. 20",
+      views: 1067,
+      author: "베이스시즌 운영팀",
+      content: `안녕하세요, 베이스시즌입니다.\n\n2025년도 베이스시즌 회원 등급별 풍성한 멤버십 혜택을 안내드립니다.\n\n[등급 기준 및 혜택 안내]\n- WELCOME (신규 가입): 가입 즉시 5,000원 할인 쿠폰 + 전 상품 무료배송 쿠폰\n- SILVER (누적 10만원 이상): 상시 3% 할인 + 매월 7% 할인 쿠폰 1매\n- GOLD (누적 30만원 이상): 상시 5% 할인 + 매월 10% 할인 쿠폰 2매 + 무료 반품권 1매\n- VIP (누적 70만원 이상): 상시 7% 할인 + 매월 15% 할인 쿠폰 2매 + 상시 무료배송\n\n회원 등급은 매월 1일 전월 누적 실 결제 금액을 기준으로 자동 갱신됩니다.\n많은 관심과 사랑 부탁드립니다.`,
+    },
+    {
+      id: 1,
+      isPinned: false,
+      badge: null,
+      title: "베이스시즌 공식몰 오픈 안내",
+      date: "2025. 05. 01",
+      views: 2341,
+      author: "베이스시즌 관리자",
+      content: `반갑습니다, 클래식 & 미니멀 감성 브랜드 '베이스시즌(BASEASON)'의 공식 온라인 스토어가 드디어 정식 오픈하였습니다.\n\n시간이 지나도 변치 않는 감도 높은 시즌리스 데일리웨어를 고객 여러분께 선보입니다.\n\n- 신규 회원가입 시 웰컴 쿠폰팩 즉시 증정\n- 전 상품 오픈 기념 무료배송 프로모션 진행\n- 첫 구매 고객 대상 브랜드 전용 패브릭 백 한정 증정\n\n앞으로 고객님들의 일상에 편안함과 스타일을 더해드리는 베이스시즌이 되겠습니다.\n감사합니다.`,
+    },
+  ]);
+  const [selectedNotice, setSelectedNotice] = useState(null);
 
   // ---- checkout flow --------------------------------------------------
   const [checkoutDraft, setCheckoutDraft] = useState(null);
@@ -453,6 +500,23 @@ function App() {
     }
   };
 
+  const goNotice = () => {
+    closeOverlays();
+    setSelectedNotice(null);
+    setPage("notice");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goNoticeDetail = (notice) => {
+    closeOverlays();
+    setSelectedNotice(notice);
+    setNoticeList((prev) =>
+      prev.map((n) => (n.id === notice.id ? { ...n, views: n.views + 1 } : n))
+    );
+    setPage("notice-detail");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const goQnA = () => {
     closeOverlays();
     setSelectedQnA(null);
@@ -625,6 +689,7 @@ function App() {
             onMyPage={goMyPage}
             onRefund={goRefundHistory}
             onQnA={goQnA}
+            onNotice={goNotice}
           />
         </>
       )}
@@ -796,12 +861,28 @@ function App() {
         />
       )}
 
+      {page === "notice" && (
+        <NoticeListPage
+          noticeList={noticeList}
+          onSelectNotice={goNoticeDetail}
+          onQnA={goQnA}
+        />
+      )}
+
+      {page === "notice-detail" && selectedNotice && (
+        <NoticeDetailPage
+          notice={selectedNotice}
+          onBack={goNotice}
+          onQnA={goQnA}
+        />
+      )}
+
       {page === "qna" && (
         <QnAListPage
           qnaList={qnaList}
           onGoWrite={goQnAWrite}
           onSelectQnA={goQnADetail}
-          onNotice={() => window.alert("공지사항을 준비 중입니다.")}
+          onNotice={goNotice}
         />
       )}
 
@@ -811,7 +892,7 @@ function App() {
           onBack={goQnA}
           onEdit={goQnAEdit}
           onDelete={handleDeleteQnA}
-          onNotice={() => window.alert("공지사항을 준비 중입니다.")}
+          onNotice={goNotice}
         />
       )}
 
@@ -820,7 +901,7 @@ function App() {
           editingQnA={editingQnA}
           onCancel={editingQnA ? () => setPage("qna-detail") : goQnA}
           onSubmit={submitQnA}
-          onNotice={() => window.alert("공지사항을 준비 중입니다.")}
+          onNotice={goNotice}
         />
       )}
 
@@ -947,6 +1028,7 @@ function SideMenu({
   onMyPage,
   onRefund,
   onQnA,
+  onNotice,
 }) {
   return (
     <aside className="side-menu">
@@ -1046,7 +1128,7 @@ function SideMenu({
 
       {menuType === "community" && (
         <div className="side-links">
-          <button type="button" onClick={() => window.alert("공지사항을 준비 중입니다.")}>NOTICE</button>
+          <button type="button" onClick={onNotice}>NOTICE</button>
           <button type="button" onClick={onQnA}>Q&A</button>
           {loggedIn && (
             <button className="logout-button" onClick={onLogout}>
