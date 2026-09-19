@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "./App.css";
+import "./figma.css";
 import { api, ApiError, getToken, setToken } from "./api";
+import { MemberInfoPage } from "./pages/MemberInfoPage";
+import { AddressPage } from "./pages/AddressPage";
+import { RefundApplyPage } from "./pages/RefundApplyPage";
+import { RefundDetailPage } from "./pages/RefundDetailPage";
+import { RefundHistoryPage } from "./pages/RefundHistoryPage";
+import { CancelExchangeReturnPage } from "./pages/CancelExchangeReturnPage";
+import { OrderHistoryPage } from "./pages/OrderHistoryPage";
+import { OrderDetailPage } from "./pages/OrderDetailPage";
+import { QnAListPage } from "./pages/QnAListPage";
+import { QnAWritePage } from "./pages/QnAWritePage";
 
 function App() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -30,6 +41,19 @@ function App() {
   const [orders, setOrders] = useState([]);
   const [refunds, setRefunds] = useState([]);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedRefund, setSelectedRefund] = useState(null);
+  const [refundTargetOrder, setRefundTargetOrder] = useState(null);
+  const [qnaList, setQnaList] = useState([
+    { id: 12, title: "사이즈 문의드립니다.", category: "상품 문의", date: "2025. 06. 11", status: "COMPLETED" },
+    { id: 11, title: "결제 취소 가능한가요?", category: "주문/결제", date: "2025. 06. 10", status: "WAITING" },
+    { id: 10, title: "교환 신청은 어떻게 하나요?", category: "교환/반품", date: "2025. 06. 08", status: "COMPLETED" },
+    { id: 9, title: "배송 언제 되나요?", category: "배송", date: "2025. 06. 07", status: "COMPLETED" },
+    { id: 8, title: "재입고 일정이 궁금합니다.", category: "상품 문의", date: "2025. 06. 05", status: "COMPLETED" },
+    { id: 7, title: "주문한 상품 색상 변경 가능할까요?", category: "주문/결제", date: "2025. 06. 03", status: "COMPLETED" },
+    { id: 6, title: "환불 처리 기간은 얼마나 걸리나요?", category: "교환/반품", date: "2025. 05. 30", status: "COMPLETED" },
+    { id: 5, title: "상품 실측 사이즈 문의입니다.", category: "상품 문의", date: "2025. 05. 28", status: "COMPLETED" },
+    { id: 4, title: "선물 포장 가능한가요?", category: "기타", date: "2025. 05. 25", status: "COMPLETED" },
+  ]);
 
   // ---- checkout flow --------------------------------------------------
   const [checkoutDraft, setCheckoutDraft] = useState(null);
@@ -163,6 +187,9 @@ function App() {
     setAddresses([]);
     setOrders([]);
     setRefunds([]);
+    setSelectedOrder(null);
+    setSelectedRefund(null);
+    setRefundTargetOrder(null);
     closeOverlays();
     setPage("home");
   };
@@ -199,6 +226,10 @@ function App() {
       .getRefundRequests()
       .then(setRefunds)
       .catch(() => setRefunds([]));
+    api
+      .getOrders()
+      .then(setOrders)
+      .catch(() => setOrders([]));
   };
 
   const goCancelExchangeReturn = () => {
@@ -256,16 +287,60 @@ function App() {
     }
   };
 
-  const requestRefund = async (order, reason) => {
+  const goRefundApply = (order) => {
+    closeOverlays();
+    if (!loggedIn) {
+      requireLogin();
+      return;
+    }
+    const targetOrder = order || orders[0];
+    if (!targetOrder) {
+      window.alert("환불 신청 가능한 주문 내역이 없습니다.");
+      return;
+    }
+    setRefundTargetOrder(targetOrder);
+    setPage("refund-apply");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goRefundDetail = (refund, order) => {
+    closeOverlays();
+    setSelectedRefund(refund);
+    setRefundTargetOrder(order || orders.find((o) => o.order_id === refund?.order_id) || orders[0]);
+    setPage("refund-detail");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const submitRefundApply = async (order, reason) => {
     try {
-      await api.createRefundRequest({ order_id: order.order_id, refund_reason: reason });
-      window.alert("환불이 접수되었습니다.");
-      const list = await refreshOrders();
-      const updated = list.find((o) => o.order_id === order.order_id) || order;
-      setSelectedOrder(updated);
+      const created = await api.createRefundRequest({ order_id: order.order_id, refund_reason: reason });
+      window.alert("환불이 정상적으로 접수되었습니다.");
+      await refreshOrders();
+      const updatedRefunds = await api.getRefundRequests().catch(() => []);
+      setRefunds(updatedRefunds);
+      goRefundDetail(created, order);
     } catch (err) {
       window.alert(err instanceof ApiError ? err.message : "환불 신청에 실패했습니다.");
     }
+  };
+
+  const goQnA = () => {
+    closeOverlays();
+    setPage("qna");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const goQnAWrite = () => {
+    closeOverlays();
+    setPage("qna-write");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const submitQnA = (newQnA) => {
+    const nextId = qnaList.length > 0 ? Math.max(...qnaList.map((q) => q.id)) + 1 : 1;
+    setQnaList((prev) => [{ ...newQnA, id: nextId }, ...prev]);
+    setPage("qna");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   // ---------------------------------------------------- buy / checkout --
@@ -367,6 +442,7 @@ function App() {
             onBestSeller={goBestSellerPage}
             onMyPage={goMyPage}
             onRefund={goRefundHistory}
+            onQnA={goQnA}
           />
         </>
       )}
@@ -402,9 +478,9 @@ function App() {
       )}
 
       {page === "mypage" && (
-        <MyPage
+        <OrderHistoryPage
+          orders={orders}
           authUser={authUser}
-          orderHistory={orders}
           onOrderDetail={goOrderDetail}
           onRefund={goRefundHistory}
           onCancelExchangeReturn={goCancelExchangeReturn}
@@ -417,7 +493,40 @@ function App() {
       {page === "refund" && (
         <RefundHistoryPage
           refunds={refunds}
+          orders={orders}
           authUser={authUser}
+          onGoRefundApply={() => goRefundApply()}
+          onGoRefundDetail={goRefundDetail}
+          onOrderHistory={goMyPage}
+          onCancelExchangeReturn={goCancelExchangeReturn}
+          onMemberInfo={goMemberInfo}
+          onAddress={goAddress}
+          onLogout={handleLogout}
+        />
+      )}
+
+      {page === "refund-apply" && refundTargetOrder && (
+        <RefundApplyPage
+          order={refundTargetOrder}
+          authUser={authUser}
+          onCancel={goRefundHistory}
+          onSubmitRefund={submitRefundApply}
+          onOrderHistory={goMyPage}
+          onRefund={goRefundHistory}
+          onCancelExchangeReturn={goCancelExchangeReturn}
+          onMemberInfo={goMemberInfo}
+          onAddress={goAddress}
+          onLogout={handleLogout}
+        />
+      )}
+
+      {page === "refund-detail" && selectedRefund && (
+        <RefundDetailPage
+          refund={selectedRefund}
+          order={refundTargetOrder}
+          authUser={authUser}
+          onGoRefundList={goRefundHistory}
+          onGoBestSeller={goBestSellerPage}
           onOrderHistory={goMyPage}
           onCancelExchangeReturn={goCancelExchangeReturn}
           onMemberInfo={goMemberInfo}
@@ -447,6 +556,7 @@ function App() {
           onCancelExchangeReturn={goCancelExchangeReturn}
           onAddress={goAddress}
           onLogout={handleLogout}
+          onGoBack={goMyPage}
         />
       )}
 
@@ -464,7 +574,35 @@ function App() {
       )}
 
       {page === "order-detail" && selectedOrder && (
-        <OrderDetailPage order={selectedOrder} onBack={goMyPage} onRefund={requestRefund} />
+        <OrderDetailPage
+          order={selectedOrder}
+          authUser={authUser}
+          onBack={goMyPage}
+          onGoBestSeller={goBestSellerPage}
+          onApplyRefund={goRefundApply}
+          onOrderHistory={goMyPage}
+          onRefund={goRefundHistory}
+          onCancelExchangeReturn={goCancelExchangeReturn}
+          onMemberInfo={goMemberInfo}
+          onAddress={goAddress}
+          onLogout={handleLogout}
+        />
+      )}
+
+      {page === "qna" && (
+        <QnAListPage
+          qnaList={qnaList}
+          onGoWrite={goQnAWrite}
+          onNotice={() => window.alert("공지사항을 준비 중입니다.")}
+        />
+      )}
+
+      {page === "qna-write" && (
+        <QnAWritePage
+          onCancel={goQnA}
+          onSubmit={submitQnA}
+          onNotice={() => window.alert("공지사항을 준비 중입니다.")}
+        />
       )}
 
       {page === "order" && checkoutDraft && (
@@ -588,6 +726,7 @@ function SideMenu({
   onBestSeller,
   onMyPage,
   onRefund,
+  onQnA,
 }) {
   return (
     <aside className="side-menu">
@@ -687,8 +826,8 @@ function SideMenu({
 
       {menuType === "community" && (
         <div className="side-links">
-          <button>NOTICE</button>
-          <button>Q&A</button>
+          <button type="button" onClick={() => window.alert("공지사항을 준비 중입니다.")}>NOTICE</button>
+          <button type="button" onClick={onQnA}>Q&A</button>
           {loggedIn && (
             <button className="logout-button" onClick={onLogout}>
               LOGOUT
@@ -1628,661 +1767,6 @@ function OrderCompletePage({ order, onBestSeller, onMyPage }) {
           <button type="button" className="outline" onClick={onBestSeller}>
             다른 상품 보러가기
           </button>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-// =====================================================================
-// My page
-// =====================================================================
-
-function MyPageSidebar({ active, authUser, onOrderHistory, onRefund, onCancelExchangeReturn, onMemberInfo, onAddress, onLogout }) {
-  return (
-    <aside className="mypage-sidebar">
-      <div className="mypage-user">
-        <img src="/images/icons/icon_mypage.svg" alt="" />
-        <div>
-          <span>안녕하세요,</span>
-          <strong>{authUser?.user_name}님</strong>
-        </div>
-      </div>
-
-      <nav className="mypage-nav">
-        <button className={active === "order" ? "active" : ""} type="button" onClick={onOrderHistory}>
-          주문내역
-        </button>
-        <button className={active === "refund" ? "active" : ""} type="button" onClick={onRefund}>
-          환불내역
-        </button>
-        <button className={active === "cancel" ? "active" : ""} type="button" onClick={onCancelExchangeReturn}>
-          취소/교환/반품 내역
-        </button>
-        <button className={active === "member" ? "active" : ""} type="button" onClick={onMemberInfo}>
-          회원정보수정
-        </button>
-        <button className={active === "address" ? "active" : ""} type="button" onClick={onAddress}>
-          배송지 관리
-        </button>
-      </nav>
-
-      <button className="mypage-logout" type="button" onClick={onLogout}>
-        LOGOUT
-      </button>
-    </aside>
-  );
-}
-
-function MyPage({ authUser, orderHistory, onOrderDetail, onRefund, onCancelExchangeReturn, onMemberInfo, onAddress, onLogout }) {
-  return (
-    <main className="mypage">
-      <div className="mypage-inner">
-        <div className="mypage-breadcrumb">
-          HOME <span>›</span> 마이페이지 <span>›</span> 주문내역
-        </div>
-
-        <div className="mypage-layout">
-          <MyPageSidebar
-            active="order"
-            authUser={authUser}
-            onOrderHistory={() => {}}
-            onRefund={onRefund}
-            onCancelExchangeReturn={onCancelExchangeReturn}
-            onMemberInfo={onMemberInfo}
-            onAddress={onAddress}
-            onLogout={onLogout}
-          />
-
-          <section className="mypage-content">
-            <div className="mypage-heading">
-              <div>
-                <h1>주문내역</h1>
-                <p>지금까지 주문하신 내역을 확인하실 수 있습니다.</p>
-              </div>
-              <span>총 {orderHistory.length}건</span>
-            </div>
-
-            {orderHistory.length === 0 ? (
-              <div className="empty-order-history">
-                <div className="empty-order-icon">⌁</div>
-                <h2>주문내역이 없습니다.</h2>
-                <p>아직 주문하신 상품이 없습니다.</p>
-              </div>
-            ) : (
-              <div className="order-history-list">
-                {orderHistory.map((order) => {
-                  const item = order.items[0];
-                  return (
-                    <article className="history-order-card" key={order.order_id}>
-                      <div className="history-order-head">
-                        <span>{formatDateTime(order.ordered_at)}</span>
-                        <strong>주문번호 {order.order_no}</strong>
-                        <button type="button" onClick={() => onOrderDetail(order)}>
-                          상세보기 ›
-                        </button>
-                      </div>
-
-                      <div className="history-order-body">
-                        {item && (
-                          <>
-                            <div className="history-product-image">
-                              <img src={item.thumbnail_url} alt={item.product_name_snapshot} />
-                            </div>
-                            <div className="history-product-info">
-                              <strong>{item.product_name_snapshot}</strong>
-                              <span>수량 : {item.quantity}개</span>
-                            </div>
-                            <strong className="history-product-price">{formatPrice(item.item_amount)}</strong>
-                          </>
-                        )}
-
-                        <div className="history-order-status">
-                          <strong>{orderStatusLabel(order.process_status || order.order_status)}</strong>
-                          <button type="button" onClick={() => onOrderDetail(order)}>
-                            주문상세보기
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-function OrderDetailPage({ order, onBack, onRefund }) {
-  const item = order.items[0];
-  const canRequestRefund = ["PAID", "PREPARING", "SHIPPING", "DELIVERED", "COMPLETED"].includes(order.order_status);
-
-  const handleRefundClick = () => {
-    const reason = window.prompt("환불 사유를 입력해주세요.", "단순 변심");
-    if (!reason) return;
-    onRefund(order, reason);
-  };
-
-  return (
-    <main className="mypage">
-      <div className="mypage-inner order-detail-inner">
-        <div className="mypage-breadcrumb">
-          HOME <span>›</span> 마이페이지 <span>›</span> 주문내역 <span>›</span> 상세보기
-        </div>
-
-        <section className="order-detail-page">
-          <div className="mypage-heading">
-            <div>
-              <h1>주문 상세보기</h1>
-              <p>주문하신 상품의 상세 정보를 확인하실 수 있습니다.</p>
-            </div>
-          </div>
-
-          <div className="order-detail-box">
-            <div className="order-detail-meta order-detail-meta-three">
-              <div>
-                <span>주문번호</span>
-                <strong>{order.order_no}</strong>
-              </div>
-              <div>
-                <span>주문상태</span>
-                <strong>{orderStatusLabel(order.process_status || order.order_status)}</strong>
-              </div>
-              <div>
-                <span>결제방법</span>
-                <strong>{paymentMethodLabel(order.payment_method)}</strong>
-              </div>
-            </div>
-
-            {item && (
-              <div className="order-detail-product">
-                <div className="order-detail-image">
-                  <img src={item.thumbnail_url} alt={item.product_name_snapshot} />
-                </div>
-                <div className="order-detail-info">
-                  <strong>{item.product_name_snapshot}</strong>
-                  <span>SKU : {item.sku_snapshot}</span>
-                  <span>수량 : {item.quantity}개</span>
-                </div>
-                <strong className="order-detail-price">{formatPrice(item.item_amount)}</strong>
-              </div>
-            )}
-
-            <div className="order-detail-delivery">
-              <h2>배송 정보</h2>
-              <div>
-                <span>받는 분</span>
-                <strong>{order.receiver_name || "-"}</strong>
-              </div>
-              <div>
-                <span>연락처</span>
-                <strong>{order.receiver_phone || "-"}</strong>
-              </div>
-              <div>
-                <span>주소</span>
-                <strong>
-                  {order.shipping_address1 || "-"} {order.shipping_address2 || ""}
-                </strong>
-              </div>
-            </div>
-
-            <div className="order-detail-payment">
-              <h2>결제 금액</h2>
-              <div>
-                <span>상품 금액</span>
-                <strong>{formatPrice(order.product_amount)}</strong>
-              </div>
-              <div>
-                <span>할인 금액</span>
-                <strong>- {formatPrice(order.discount_amount)}</strong>
-              </div>
-              <div>
-                <span>배송비</span>
-                <strong>{formatPrice(order.shipping_amount)}</strong>
-              </div>
-              <div className="total">
-                <span>최종 결제 금액</span>
-                <strong>{formatPrice(order.total_amount)}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div className="order-detail-actions">
-            <button className="order-detail-back" type="button" onClick={onBack}>
-              주문내역으로 돌아가기
-            </button>
-            {canRequestRefund && order.process_status !== "REFUND_WAITING" && (
-              <button className="order-detail-refund" type="button" onClick={handleRefundClick}>
-                환불 신청
-              </button>
-            )}
-          </div>
-        </section>
-      </div>
-    </main>
-  );
-}
-
-function RefundHistoryPage({ refunds, authUser, onOrderHistory, onCancelExchangeReturn, onMemberInfo, onAddress, onLogout }) {
-  return (
-    <main className="mypage">
-      <div className="mypage-inner refund-inner">
-        <div className="mypage-breadcrumb">
-          HOME <span>›</span> 마이페이지 <span>›</span> 환불내역
-        </div>
-
-        <div className="mypage-layout">
-          <MyPageSidebar
-            active="refund"
-            authUser={authUser}
-            onOrderHistory={onOrderHistory}
-            onRefund={() => {}}
-            onCancelExchangeReturn={onCancelExchangeReturn}
-            onMemberInfo={onMemberInfo}
-            onAddress={onAddress}
-            onLogout={onLogout}
-          />
-
-          <section className="mypage-content refund-content">
-            <div className="mypage-heading">
-              <div>
-                <h1>환불내역</h1>
-                <p>신청하신 환불 내역과 진행 상태를 확인하실 수 있습니다.</p>
-              </div>
-              <span>총 {refunds.length}건</span>
-            </div>
-
-            {refunds.length === 0 ? (
-              <div className="refund-empty">
-                <div className="refund-empty-icon">↩</div>
-                <h2>환불내역이 없습니다.</h2>
-                <p>아직 환불을 신청한 상품이 없습니다.</p>
-              </div>
-            ) : (
-              <div className="order-history-list">
-                {refunds.map((r) => (
-                  <article className="history-order-card" key={r.refund_request_id}>
-                    <div className="history-order-head">
-                      <span>{formatDateTime(r.requested_at)}</span>
-                      <strong>주문번호 {r.order_no}</strong>
-                      <span>{refundStatusLabel(r.refund_status)}</span>
-                    </div>
-                    <div className="history-order-body">
-                      <div className="history-product-info">
-                        <strong>환불 사유 : {r.refund_reason}</strong>
-                        <span>요청 금액 : {formatPrice(r.requested_amount)}</span>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-
-            <div className="refund-guide">
-              <div className="refund-guide-title">
-                <h2>환불 안내</h2>
-                <span>BASEASON 환불 안내</span>
-              </div>
-              <ul>
-                <li>환불은 상품 수거 완료 후 영업일 기준 3~5일 이내에 처리됩니다.</li>
-                <li>결제 수단에 따라 실제 환불 반영 시점은 달라질 수 있습니다.</li>
-                <li>환불 신청 및 진행 상태는 환불내역에서 확인하실 수 있습니다.</li>
-              </ul>
-            </div>
-          </section>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-function CancelExchangeReturnPage({ refunds, authUser, onOrderHistory, onRefund, onMemberInfo, onAddress, onLogout }) {
-  return (
-    <main className="mypage">
-      <div className="mypage-inner">
-        <div className="mypage-breadcrumb">
-          HOME <span>›</span> 마이페이지 <span>›</span> 취소/교환/반품 내역
-        </div>
-
-        <div className="mypage-layout">
-          <MyPageSidebar
-            active="cancel"
-            authUser={authUser}
-            onOrderHistory={onOrderHistory}
-            onRefund={onRefund}
-            onCancelExchangeReturn={() => {}}
-            onMemberInfo={onMemberInfo}
-            onAddress={onAddress}
-            onLogout={onLogout}
-          />
-
-          <section className="mypage-content empty-status-page">
-            <div className="mypage-heading">
-              <div>
-                <h1>취소/교환/반품 내역</h1>
-                <p>신청하신 취소, 교환, 반품(환불) 내역과 진행 상태를 확인하실 수 있습니다.</p>
-              </div>
-              <span>총 {refunds.length}건</span>
-            </div>
-
-            {refunds.length === 0 ? (
-              <div className="empty-status-box">
-                <div className="empty-status-icon">↺</div>
-                <h2>취소/교환/반품 내역이 없습니다.</h2>
-                <p>아직 취소, 교환 또는 반품을 신청한 상품이 없습니다.</p>
-              </div>
-            ) : (
-              <div className="order-history-list">
-                {refunds.map((r) => (
-                  <article className="history-order-card" key={r.refund_request_id}>
-                    <div className="history-order-head">
-                      <span>{formatDateTime(r.requested_at)}</span>
-                      <strong>주문번호 {r.order_no}</strong>
-                      <span>{refundStatusLabel(r.refund_status)}</span>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-function MemberInfoPage({ authUser, setAuthUser, onOrderHistory, onRefund, onCancelExchangeReturn, onAddress, onLogout }) {
-  const [editing, setEditing] = useState(false);
-  const [userName, setUserName] = useState(authUser?.user_name || "");
-  const [phone, setPhone] = useState(authUser?.phone || "");
-  const [saving, setSaving] = useState(false);
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const updated = await api.updateMe({ user_name: userName, phone });
-      setAuthUser(updated);
-      setEditing(false);
-      window.alert("회원정보가 수정되었습니다.");
-    } catch (err) {
-      window.alert(err instanceof ApiError ? err.message : "수정에 실패했습니다.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleChangePassword = async () => {
-    const oldPassword = window.prompt("현재 비밀번호를 입력해주세요.");
-    if (!oldPassword) return;
-    const newPassword = window.prompt("새 비밀번호를 입력해주세요. (4자 이상)");
-    if (!newPassword) return;
-
-    try {
-      await api.changePassword({ old_password: oldPassword, new_password: newPassword });
-      window.alert("비밀번호가 변경되었습니다.");
-    } catch (err) {
-      window.alert(err instanceof ApiError ? err.message : "비밀번호 변경에 실패했습니다.");
-    }
-  };
-
-  return (
-    <main className="mypage">
-      <div className="mypage-inner">
-        <div className="mypage-breadcrumb">
-          HOME <span>›</span> 마이페이지 <span>›</span> 회원정보 수정
-        </div>
-
-        <div className="mypage-layout">
-          <MyPageSidebar
-            active="member"
-            authUser={authUser}
-            onOrderHistory={onOrderHistory}
-            onRefund={onRefund}
-            onCancelExchangeReturn={onCancelExchangeReturn}
-            onMemberInfo={() => {}}
-            onAddress={onAddress}
-            onLogout={onLogout}
-          />
-
-          <section className="mypage-content simple-setting-page">
-            <div className="mypage-heading">
-              <div>
-                <h1>회원정보 수정</h1>
-                <p>회원님의 기본 정보를 확인하고 수정할 수 있습니다.</p>
-              </div>
-            </div>
-
-            {!editing ? (
-              <div className="setting-card">
-                <div className="setting-row">
-                  <span>아이디</span>
-                  <strong>{authUser?.login_id}</strong>
-                </div>
-                <div className="setting-row">
-                  <span>이름</span>
-                  <strong>{authUser?.user_name}</strong>
-                </div>
-                <div className="setting-row">
-                  <span>비밀번호</span>
-                  <button type="button" className="small-setting-button" onClick={handleChangePassword}>
-                    비밀번호 변경
-                  </button>
-                </div>
-                <div className="setting-row">
-                  <span>휴대전화</span>
-                  <strong>{authUser?.phone || "등록된 정보 없음"}</strong>
-                </div>
-                <div className="setting-row">
-                  <span>이메일</span>
-                  <strong>{authUser?.email || "등록된 정보 없음"}</strong>
-                </div>
-              </div>
-            ) : (
-              <div className="receiver-grid auth-grid">
-                <label>
-                  <span>이름</span>
-                  <input value={userName} onChange={(e) => setUserName(e.target.value)} />
-                </label>
-                <label>
-                  <span>휴대전화</span>
-                  <input value={phone} onChange={(e) => setPhone(e.target.value)} />
-                </label>
-              </div>
-            )}
-
-            <div className="setting-actions">
-              {!editing ? (
-                <button type="button" className="setting-primary-button" onClick={() => setEditing(true)}>
-                  수정하기
-                </button>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    className="small-setting-button"
-                    onClick={() => setEditing(false)}
-                    disabled={saving}
-                  >
-                    취소
-                  </button>
-                  <button type="button" className="setting-primary-button" onClick={handleSave} disabled={saving}>
-                    {saving ? "저장 중..." : "저장"}
-                  </button>
-                </>
-              )}
-            </div>
-          </section>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-function AddressPage({ addresses, setAddresses, authUser, onOrderHistory, onRefund, onCancelExchangeReturn, onMemberInfo, onLogout }) {
-  const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({
-    address_name: "",
-    receiver_name: "",
-    receiver_phone: "",
-    zipcode: "",
-    address1: "",
-    address2: "",
-    default_yn: "N",
-  });
-  const [saving, setSaving] = useState(false);
-
-  const update = (key) => (e) => setForm((prev) => ({ ...prev, [key]: e.target.value }));
-
-  const handleAdd = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    try {
-      const created = await api.createAddress(form);
-      setAddresses((prev) => [created, ...prev.map((a) => (form.default_yn === "Y" ? { ...a, default_yn: "N" } : a))]);
-      setAdding(false);
-      setForm({
-        address_name: "",
-        receiver_name: "",
-        receiver_phone: "",
-        zipcode: "",
-        address1: "",
-        address2: "",
-        default_yn: "N",
-      });
-    } catch (err) {
-      window.alert(err instanceof ApiError ? err.message : "배송지 등록에 실패했습니다.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async (addressId) => {
-    if (!window.confirm("이 배송지를 삭제하시겠습니까?")) return;
-    try {
-      await api.deleteAddress(addressId);
-      setAddresses((prev) => prev.filter((a) => a.address_id !== addressId));
-    } catch (err) {
-      window.alert(err instanceof ApiError ? err.message : "배송지 삭제에 실패했습니다.");
-    }
-  };
-
-  return (
-    <main className="mypage">
-      <div className="mypage-inner">
-        <div className="mypage-breadcrumb">
-          HOME <span>›</span> 마이페이지 <span>›</span> 배송지 관리
-        </div>
-
-        <div className="mypage-layout">
-          <MyPageSidebar
-            active="address"
-            authUser={authUser}
-            onOrderHistory={onOrderHistory}
-            onRefund={onRefund}
-            onCancelExchangeReturn={onCancelExchangeReturn}
-            onMemberInfo={onMemberInfo}
-            onAddress={() => {}}
-            onLogout={onLogout}
-          />
-
-          <section className="mypage-content simple-setting-page">
-            <div className="mypage-heading">
-              <div>
-                <h1>배송지 관리</h1>
-                <p>자주 사용하는 배송지를 관리할 수 있습니다.</p>
-              </div>
-            </div>
-
-            {addresses.length === 0 && !adding && (
-              <div className="address-empty-box">
-                <div className="empty-status-icon">⌂</div>
-                <h2>등록된 배송지가 없습니다.</h2>
-                <p>배송지를 등록하면 주문할 때 편리하게 이용할 수 있습니다.</p>
-                <button type="button" className="setting-primary-button" onClick={() => setAdding(true)}>
-                  배송지 추가
-                </button>
-              </div>
-            )}
-
-            {addresses.length > 0 && (
-              <div className="address-list">
-                {addresses.map((addr) => (
-                  <article className="address-card" key={addr.address_id}>
-                    <div>
-                      <strong>{addr.address_name || "배송지"}</strong>
-                      {addr.default_yn === "Y" && <span className="default-badge">기본배송지</span>}
-                    </div>
-                    <p>
-                      {addr.receiver_name} · {addr.receiver_phone}
-                    </p>
-                    <p>
-                      ({addr.zipcode}) {addr.address1} {addr.address2}
-                    </p>
-                    <button type="button" className="small-setting-button" onClick={() => handleDelete(addr.address_id)}>
-                      삭제
-                    </button>
-                  </article>
-                ))}
-              </div>
-            )}
-
-            {addresses.length > 0 && !adding && (
-              <div className="setting-actions">
-                <button type="button" className="setting-primary-button" onClick={() => setAdding(true)}>
-                  배송지 추가
-                </button>
-              </div>
-            )}
-
-            {adding && (
-              <form className="receiver-grid auth-grid address-form" onSubmit={handleAdd}>
-                <label>
-                  <span>배송지명</span>
-                  <input value={form.address_name} onChange={update("address_name")} placeholder="집, 회사 등" />
-                </label>
-                <label>
-                  <span>받는 분</span>
-                  <input value={form.receiver_name} onChange={update("receiver_name")} required />
-                </label>
-                <label>
-                  <span>연락처</span>
-                  <input value={form.receiver_phone} onChange={update("receiver_phone")} required />
-                </label>
-                <label>
-                  <span>우편번호</span>
-                  <input value={form.zipcode} onChange={update("zipcode")} />
-                </label>
-                <label>
-                  <span>주소</span>
-                  <input value={form.address1} onChange={update("address1")} required />
-                </label>
-                <label>
-                  <span>상세주소</span>
-                  <input value={form.address2} onChange={update("address2")} />
-                </label>
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={form.default_yn === "Y"}
-                    onChange={(e) => setForm((prev) => ({ ...prev, default_yn: e.target.checked ? "Y" : "N" }))}
-                  />
-                  <span>기본 배송지로 설정</span>
-                </label>
-
-                <div className="setting-actions">
-                  <button type="button" className="small-setting-button" onClick={() => setAdding(false)} disabled={saving}>
-                    취소
-                  </button>
-                  <button type="submit" className="setting-primary-button" disabled={saving}>
-                    {saving ? "저장 중..." : "저장"}
-                  </button>
-                </div>
-              </form>
-            )}
-          </section>
         </div>
       </div>
     </main>
