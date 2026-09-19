@@ -20,6 +20,29 @@ export function QnADetailPage({
     );
   }
 
+  // 비밀글 가드 (본인 글이 아닌 경우)
+  if (!qna.isMine) {
+    return (
+      <main className="mypage">
+        <div className="mypage-inner">
+          <div className="figma-empty-card" style={{ margin: "40px auto", maxWidth: "500px" }}>
+            <div className="empty-icon-wrap">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#a89a8d" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+            </div>
+            <h3>비밀글입니다.</h3>
+            <p>이 문의는 비공개 설정되어 있어 작성자 본인만 조회할 수 있습니다.</p>
+            <button type="button" className="btn-add-address-primary" onClick={onBack}>
+              Q&A 목록으로 돌아가기
+            </button>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   const handleDelete = () => {
     if (window.confirm("정말 이 문의를 삭제하시겠습니까? 삭제 후에는 복구할 수 없습니다.")) {
       onDelete(qna.id);
@@ -54,11 +77,17 @@ export function QnADetailPage({
                   ) : (
                     <span className="badge-qna-waiting">답변대기</span>
                   )}
+                  {qna.isMine && (
+                    <span className="badge-my-post">내가 작성한 글</span>
+                  )}
                 </div>
                 <h2 className="qna-detail-title">{qna.title}</h2>
                 <div className="qna-detail-meta-bottom">
                   <span>작성자: <strong>{qna.author || "고객님"}</strong></span>
                   <span>작성일: <strong>{qna.date}</strong></span>
+                  {qna.updatedDate && (
+                    <span>수정일: <strong style={{ color: "#6d5548" }}>{qna.updatedDate}</strong> (수정됨)</span>
+                  )}
                   <span>문의번호: <strong>#{qna.id}</strong></span>
                 </div>
               </div>

@@ -6,6 +6,7 @@ export function MyPageSidebar({
   onCancelExchangeReturn,
   onMemberInfo,
   onAddress,
+  onMyQnA,
   onLogout,
 }) {
   const displayName = authUser?.login_id || authUser?.user_name || "회원";
@@ -61,6 +62,13 @@ export function MyPageSidebar({
         >
           환불내역
         </button>
+        <button
+          className={active === "my-qna" ? "active" : ""}
+          type="button"
+          onClick={onMyQnA}
+        >
+          1:1 문의내역
+        </button>
       </nav>
 
       <button className="mypage-logout" type="button" onClick={onLogout}>
@@ -74,4 +82,3 @@ export function MyPageSidebar({
     </aside>
   );
 }
-

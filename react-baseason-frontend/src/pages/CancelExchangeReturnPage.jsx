@@ -7,6 +7,7 @@ export function CancelExchangeReturnPage({
   onRefund,
   onMemberInfo,
   onAddress,
+  onMyQnA,
   onLogout,
 }) {
   return (
@@ -25,6 +26,7 @@ export function CancelExchangeReturnPage({
             onCancelExchangeReturn={() => {}}
             onMemberInfo={onMemberInfo}
             onAddress={onAddress}
+            onMyQnA={onMyQnA}
             onLogout={onLogout}
           />
 

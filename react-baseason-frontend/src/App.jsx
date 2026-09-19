@@ -13,6 +13,7 @@ import { OrderDetailPage } from "./pages/OrderDetailPage";
 import { QnAListPage } from "./pages/QnAListPage";
 import { QnAWritePage } from "./pages/QnAWritePage";
 import { QnADetailPage } from "./pages/QnADetailPage";
+import { MyQnAPage } from "./pages/MyQnAPage";
 
 function App() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -143,6 +144,43 @@ function App() {
       content: "지인 선물용으로 구매하려고 하는데 별도의 선물용 쇼핑백이나 포장 박스가 제공되는지 문의드립니다.",
       answer: "안녕하세요 고객님, 결제 시 배송 요청사항에 '선물 포장 요청'을 남겨주시면 브랜드 전용 선물 박스와 쇼핑백을 함께 동봉하여 발송해 드립니다.",
       answerDate: "2025. 05. 26",
+      isMine: false,
+    },
+    {
+      id: 3,
+      title: "대량 구매 할인 문의드립니다.",
+      category: "상품 문의",
+      date: "2025. 05. 20",
+      status: "COMPLETED",
+      author: "정*희",
+      content: "동호회 단체복으로 30벌 이상 구매하려고 하는데 추가 할인이 가능한지 문의드립니다.",
+      answer: "안녕하세요 고객님, 베이스시즌입니다.\n고객센터 유선 또는 사업자등록증과 함께 문의 남겨주시면 단체 대량 구매 할인 견적서를 발송해 드리겠습니다.",
+      answerDate: "2025. 05. 20",
+      isMine: false,
+    },
+    {
+      id: 2,
+      title: "세탁 및 보관 방법 문의",
+      category: "기타",
+      date: "2025. 05. 15",
+      status: "COMPLETED",
+      author: "송*민",
+      content: "린넨 셔츠 중성세제로 울코스 단독 세탁해도 되는지 문의드립니다.",
+      answer: "안녕하세요 고객님, 베이스시즌입니다.\n30도 이하의 미온수에서 중성세제로 약하게 단독 세탁을 권장합니다. 건조기 사용은 수축의 원인이 될 수 있으니 자연 건조를 권장합니다.",
+      answerDate: "2025. 05. 16",
+      isMine: false,
+    },
+    {
+      id: 1,
+      title: "신규 회원가입 쿠폰 사용 방법",
+      category: "주문/결제",
+      date: "2025. 05. 10",
+      status: "COMPLETED",
+      author: "문*진",
+      content: "회원가입 쿠폰이 발급되었는데 주문서 작성할 때 쿠폰 적용은 어떻게 하나요?",
+      answer: "안녕하세요 고객님, 결제 페이지 주문 상품 하단 [쿠폰 할인] 항목에서 보유하신 쿠폰을 선택하시면 즉시 차감 적용됩니다.",
+      answerDate: "2025. 05. 10",
+      isMine: false,
     },
   ]);
 
@@ -451,25 +489,38 @@ function App() {
     window.alert("문의가 정상적으로 삭제되었습니다.");
   };
 
+  const goMyQnA = () => {
+    closeOverlays();
+    setPage("my-qna");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const submitQnA = (qnaData) => {
     if (qnaData.id) {
       // 수정
-      setQnaList((prev) => prev.map((q) => (q.id === qnaData.id ? qnaData : q)));
-      setSelectedQnA(qnaData);
+      const updatedDate = new Date().toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" });
+      const updatedItem = {
+        ...qnaData,
+        updatedDate: updatedDate,
+      };
+      setQnaList((prev) => prev.map((q) => (q.id === qnaData.id ? updatedItem : q)));
+      setSelectedQnA(null);
       setEditingQnA(null);
-      setPage("qna-detail");
+      setPage("qna"); // 문의사항 메뉴(목록)로 이동
     } else {
       // 신규 등록
       const nextId = qnaList.length > 0 ? Math.max(...qnaList.map((q) => q.id)) + 1 : 1;
       const newItem = {
         ...qnaData,
         id: nextId,
-        author: authUser?.user_name || "고객님",
+        author: authUser?.user_name || authUser?.login_id || "고객님",
+        isMine: true,
+        updatedDate: null,
       };
       setQnaList((prev) => [newItem, ...prev]);
-      setSelectedQnA(newItem);
+      setSelectedQnA(null);
       setEditingQnA(null);
-      setPage("qna-detail");
+      setPage("qna"); // 문의사항 메뉴(목록)로 이동
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -617,6 +668,7 @@ function App() {
           onCancelExchangeReturn={goCancelExchangeReturn}
           onMemberInfo={goMemberInfo}
           onAddress={goAddress}
+          onMyQnA={goMyQnA}
           onLogout={handleLogout}
         />
       )}
@@ -632,6 +684,7 @@ function App() {
           onCancelExchangeReturn={goCancelExchangeReturn}
           onMemberInfo={goMemberInfo}
           onAddress={goAddress}
+          onMyQnA={goMyQnA}
           onLogout={handleLogout}
         />
       )}
@@ -647,6 +700,7 @@ function App() {
           onCancelExchangeReturn={goCancelExchangeReturn}
           onMemberInfo={goMemberInfo}
           onAddress={goAddress}
+          onMyQnA={goMyQnA}
           onLogout={handleLogout}
         />
       )}
@@ -662,6 +716,7 @@ function App() {
           onCancelExchangeReturn={goCancelExchangeReturn}
           onMemberInfo={goMemberInfo}
           onAddress={goAddress}
+          onMyQnA={goMyQnA}
           onLogout={handleLogout}
         />
       )}
@@ -674,6 +729,7 @@ function App() {
           onRefund={goRefundHistory}
           onMemberInfo={goMemberInfo}
           onAddress={goAddress}
+          onMyQnA={goMyQnA}
           onLogout={handleLogout}
         />
       )}
@@ -686,6 +742,7 @@ function App() {
           onRefund={goRefundHistory}
           onCancelExchangeReturn={goCancelExchangeReturn}
           onAddress={goAddress}
+          onMyQnA={goMyQnA}
           onLogout={handleLogout}
           onGoBack={goMyPage}
         />
@@ -700,6 +757,7 @@ function App() {
           onRefund={goRefundHistory}
           onCancelExchangeReturn={goCancelExchangeReturn}
           onMemberInfo={goMemberInfo}
+          onMyQnA={goMyQnA}
           onLogout={handleLogout}
         />
       )}
@@ -716,6 +774,24 @@ function App() {
           onCancelExchangeReturn={goCancelExchangeReturn}
           onMemberInfo={goMemberInfo}
           onAddress={goAddress}
+          onMyQnA={goMyQnA}
+          onLogout={handleLogout}
+        />
+      )}
+
+      {page === "my-qna" && (
+        <MyQnAPage
+          qnaList={qnaList}
+          authUser={authUser}
+          onOrderHistory={goMyPage}
+          onRefund={goRefundHistory}
+          onCancelExchangeReturn={goCancelExchangeReturn}
+          onMemberInfo={goMemberInfo}
+          onAddress={goAddress}
+          onGoWrite={goQnAWrite}
+          onSelectQnA={goQnADetail}
+          onEdit={goQnAEdit}
+          onDelete={handleDeleteQnA}
           onLogout={handleLogout}
         />
       )}
@@ -747,6 +823,7 @@ function App() {
           onNotice={() => window.alert("공지사항을 준비 중입니다.")}
         />
       )}
+
 
       {page === "order" && checkoutDraft && (
         <OrderPage

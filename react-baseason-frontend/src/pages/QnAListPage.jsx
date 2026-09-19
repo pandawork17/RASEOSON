@@ -65,6 +65,16 @@ export function QnAListPage({
     setCurrentPage(1);
   };
 
+  const handleRowClick = (item) => {
+    if (!item.isMine) {
+      window.alert("비밀글은 작성자 본인만 열람할 수 있습니다.");
+      return;
+    }
+    if (onSelectQnA) {
+      onSelectQnA(item);
+    }
+  };
+
   return (
     <main className="mypage">
       <div className="mypage-inner">
@@ -138,13 +148,14 @@ export function QnAListPage({
                     <th className="th-date" onClick={toggleSort} style={{ cursor: "pointer" }} title="클릭 시 정렬 순서 변경">
                       작성일 {sortOrder === "desc" ? "▼" : "▲"}
                     </th>
+                    <th className="th-date">수정일</th>
                     <th className="th-status">답변 상태</th>
                   </tr>
                 </thead>
                 <tbody>
                   {pagedItems.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="td-empty">
+                      <td colSpan={6} className="td-empty">
                         등록된 문의 내역이 없습니다.
                       </td>
                     </tr>
@@ -152,18 +163,34 @@ export function QnAListPage({
                     pagedItems.map((item) => (
                       <tr
                         key={item.id}
-                        className="clickable-qna-row"
-                        onClick={() => onSelectQnA && onSelectQnA(item)}
+                        className={`clickable-qna-row ${item.isMine ? "my-post-row" : "secret-post-row"}`}
+                        onClick={() => handleRowClick(item)}
                       >
                         <td className="td-num">{item.id}</td>
                         <td className="td-title">
-                          <span className="qna-table-title-link">{item.title}</span>
-                          {item.photos && item.photos.length > 0 && (
-                            <span className="qna-icon-photo" title="사진 첨부됨"> 📷</span>
+                          {item.isMine ? (
+                            <>
+                              <span className="badge-my-post">내 글</span>
+                              <span className="qna-table-title-link">{item.title}</span>
+                              {item.photos && item.photos.length > 0 && (
+                                <span className="qna-icon-photo" title="사진 첨부됨"> 📷</span>
+                              )}
+                            </>
+                          ) : (
+                            <span className="qna-secret-title">
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#887d74" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ verticalAlign: "middle", marginRight: "5px" }}>
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                              </svg>
+                              비밀글입니다.
+                            </span>
                           )}
                         </td>
                         <td className="td-cat">{item.category}</td>
                         <td className="td-date">{item.date}</td>
+                        <td className="td-date" style={{ color: item.updatedDate ? "#6d5548" : "#999" }}>
+                          {item.updatedDate || "-"}
+                        </td>
                         <td className="td-status">
                           {item.status === "COMPLETED" ? (
                             <span className="badge-qna-done">답변완료</span>
@@ -178,7 +205,7 @@ export function QnAListPage({
               </table>
             </div>
 
-            {/* 페이지네이션 (10개 초과 시에만 다음 페이지 노출) */}
+            {/* 페이지네이션 (10개 초과 시 2페이지 버튼 자동 생성) */}
             <div className="figma-pagination">
               <button
                 type="button"
@@ -218,9 +245,9 @@ export function QnAListPage({
                   <strong>문의하기 전 확인해주세요!</strong>
                 </div>
                 <ul className="notice-items">
+                  <li>고객님의 개인정보 보호를 위해 본인이 작성한 글 이외의 문의글은 비밀글로 처리됩니다.</li>
                   <li>자주 묻는 질문(FAQ)을 확인하시면 더 빠르게 해결하실 수 있습니다.</li>
                   <li>주문/배송 관련 문의는 주문번호를 함께 기재해주시면 더욱 빠른 처리가 가능합니다.</li>
-                  <li>답변이 등록된 후에도 추가 문의사항이 있으시면 언제든지 새로운 글을 등록해주세요.</li>
                 </ul>
               </div>
               <button

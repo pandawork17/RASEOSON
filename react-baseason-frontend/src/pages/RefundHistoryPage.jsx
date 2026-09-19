@@ -11,6 +11,7 @@ export function RefundHistoryPage({
   onCancelExchangeReturn,
   onMemberInfo,
   onAddress,
+  onMyQnA,
   onLogout,
 }) {
   return (
@@ -29,6 +30,7 @@ export function RefundHistoryPage({
             onCancelExchangeReturn={onCancelExchangeReturn}
             onMemberInfo={onMemberInfo}
             onAddress={onAddress}
+            onMyQnA={onMyQnA}
             onLogout={onLogout}
           />
 

@@ -12,6 +12,7 @@ export function OrderDetailPage({
   onCancelExchangeReturn,
   onMemberInfo,
   onAddress,
+  onMyQnA,
   onLogout,
 }) {
   const item = order?.items?.[0];
@@ -33,6 +34,7 @@ export function OrderDetailPage({
             onCancelExchangeReturn={onCancelExchangeReturn}
             onMemberInfo={onMemberInfo}
             onAddress={onAddress}
+            onMyQnA={onMyQnA}
             onLogout={onLogout}
           />
 

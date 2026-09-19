@@ -11,6 +11,7 @@ export function AddressPage({
   onRefund,
   onCancelExchangeReturn,
   onMemberInfo,
+  onMyQnA,
   onLogout,
 }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -99,6 +100,7 @@ export function AddressPage({
             onCancelExchangeReturn={onCancelExchangeReturn}
             onMemberInfo={onMemberInfo}
             onAddress={() => {}}
+            onMyQnA={onMyQnA}
             onLogout={onLogout}
           />
 

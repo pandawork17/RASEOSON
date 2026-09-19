@@ -10,6 +10,7 @@ export function MemberInfoPage({
   onRefund,
   onCancelExchangeReturn,
   onAddress,
+  onMyQnA,
   onLogout,
   onGoBack,
 }) {
@@ -101,6 +102,7 @@ export function MemberInfoPage({
             onCancelExchangeReturn={onCancelExchangeReturn}
             onMemberInfo={() => {}}
             onAddress={onAddress}
+            onMyQnA={onMyQnA}
             onLogout={onLogout}
           />
 

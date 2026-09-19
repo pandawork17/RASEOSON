@@ -9,6 +9,7 @@ export function OrderHistoryPage({
   onCancelExchangeReturn,
   onMemberInfo,
   onAddress,
+  onMyQnA,
   onLogout,
 }) {
   return (
@@ -27,6 +28,7 @@ export function OrderHistoryPage({
             onCancelExchangeReturn={onCancelExchangeReturn}
             onMemberInfo={onMemberInfo}
             onAddress={onAddress}
+            onMyQnA={onMyQnA}
             onLogout={onLogout}
           />
 

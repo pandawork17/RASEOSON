@@ -11,6 +11,7 @@ export function RefundDetailPage({
   onCancelExchangeReturn,
   onMemberInfo,
   onAddress,
+  onMyQnA,
   onLogout,
 }) {
   const item = order?.items?.[0];
@@ -46,6 +47,7 @@ export function RefundDetailPage({
             onCancelExchangeReturn={onCancelExchangeReturn}
             onMemberInfo={onMemberInfo}
             onAddress={onAddress}
+            onMyQnA={onMyQnA}
             onLogout={onLogout}
           />
 

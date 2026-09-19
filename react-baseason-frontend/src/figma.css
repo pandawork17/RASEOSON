@@ -1727,3 +1727,60 @@
   color: #fff;
 }
 
+/* --- Secret Post & My Post Badges --- */
+.badge-my-post {
+  display: inline-block;
+  padding: 2px 7px;
+  background: #6d5548;
+  color: #fff;
+  font-size: 11px;
+  border-radius: 3px;
+  font-weight: 600;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.qna-secret-title {
+  color: #887d74;
+  font-style: normal;
+  display: inline-flex;
+  align-items: center;
+  user-select: none;
+}
+
+.secret-post-row:hover .qna-secret-title {
+  color: #554a41;
+}
+
+.btn-table-edit,
+.btn-table-del {
+  padding: 4px 10px;
+  font-size: 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-table-edit {
+  background: #fff;
+  border: 1px solid #c9bdb0;
+  color: #4a3e35;
+}
+
+.btn-table-edit:hover {
+  background: #6d5548;
+  color: #fff;
+  border-color: #6d5548;
+}
+
+.btn-table-del {
+  background: #fff;
+  border: 1px solid #e0a39a;
+  color: #d9534f;
+}
+
+.btn-table-del:hover {
+  background: #d9534f;
+  color: #fff;
+}
+

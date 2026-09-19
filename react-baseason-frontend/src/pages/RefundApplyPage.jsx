@@ -12,6 +12,7 @@ export function RefundApplyPage({
   onCancelExchangeReturn,
   onMemberInfo,
   onAddress,
+  onMyQnA,
   onLogout,
 }) {
   const [selectedItemIds, setSelectedItemIds] = useState(
@@ -43,20 +44,20 @@ export function RefundApplyPage({
     setUploadedPhotos((prev) => [...prev, ...newPhotos].slice(0, 5));
   };
 
-  const removePhoto = (index) => {
-    setUploadedPhotos((prev) => prev.filter((_, i) => i !== index));
+  const removePhoto = (idx) => {
+    setUploadedPhotos((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (selectedItemIds.length === 0) {
-      alert("환불할 상품을 1개 이상 선택해주세요.");
+      alert("환불할 상품을 최소 1개 이상 선택해주세요.");
       return;
     }
 
     const finalCategory =
-      reasonCategory === "기타 (직접 입력)"
-        ? customReasonCategory.trim() || "기타"
+      reasonCategory === "기타 (직접입력)"
+        ? customReasonCategory.trim() || "기타 사유"
         : reasonCategory;
 
     const fullReason = detailedReason.trim()
@@ -89,6 +90,7 @@ export function RefundApplyPage({
             onCancelExchangeReturn={onCancelExchangeReturn}
             onMemberInfo={onMemberInfo}
             onAddress={onAddress}
+            onMyQnA={onMyQnA}
             onLogout={onLogout}
           />
 
