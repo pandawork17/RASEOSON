@@ -33,6 +33,7 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     user_id: int
+    org_id: int | None = None
     login_id: str
     user_name: str
     email: str

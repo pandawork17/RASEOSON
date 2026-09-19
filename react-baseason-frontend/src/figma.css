@@ -1827,3 +1827,322 @@
   min-height: 180px;
 }
 
+/* --- Role-based Login & Register Page Styles --- */
+.figma-auth-card {
+  background: #fff;
+  border: 1px solid #d4c8bd;
+  border-radius: 8px;
+  padding: 36px 32px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  max-width: 480px;
+}
+
+.register-card {
+  max-width: 500px;
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.auth-header h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #222;
+  margin: 0 0 6px;
+}
+
+.auth-subtitle {
+  font-size: 13px;
+  color: #776d65;
+  margin: 0;
+}
+
+.auth-role-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 16px;
+  background: #ede5dc;
+  padding: 5px;
+  border-radius: 6px;
+}
+
+.auth-role-tab {
+  padding: 9px 4px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #665b53;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.auth-role-tab.active {
+  background: #fff;
+  color: #222;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.role-notice-badge {
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.role-buyer {
+  background: #fbf5ee;
+  border: 1px solid #e2d3c2;
+  color: #6d5548;
+}
+
+.role-seller {
+  background: #edf5fc;
+  border: 1px solid #c2dbf0;
+  color: #1e5288;
+}
+
+.role-admin {
+  background: #fdf3ed;
+  border: 1px solid #f0d1c2;
+  color: #8c3b1e;
+}
+
+.demo-quick-login-section {
+  background: #faf7f3;
+  border: 1px dashed #c9bdb0;
+  border-radius: 6px;
+  padding: 16px;
+  margin-bottom: 22px;
+}
+
+.quick-login-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.quick-login-header strong {
+  font-size: 13px;
+  color: #222;
+}
+
+.quick-desc {
+  font-size: 11px;
+  color: #887d74;
+  width: 100%;
+  margin-top: 2px;
+}
+
+.demo-accounts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.demo-account-card {
+  background: #fff;
+  border: 1px solid #dfd5c9;
+  border-radius: 6px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.demo-acc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.acc-name {
+  font-size: 13px;
+  color: #222;
+}
+
+.acc-id {
+  font-size: 12px;
+  color: #777;
+  margin-left: 4px;
+}
+
+.demo-branch-tag {
+  font-size: 11px;
+  padding: 2px 6px;
+  border: 1px solid #bbb;
+  border-radius: 3px;
+  font-weight: 500;
+}
+
+.demo-acc-desc {
+  font-size: 11px;
+  color: #776c63;
+  margin: 2px 0 6px;
+}
+
+.btn-demo-quick-login {
+  align-self: flex-end;
+  padding: 5px 12px;
+  background: #6d5548;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-demo-quick-login:hover {
+  background: #543f34;
+}
+
+.divider-text {
+  text-align: center;
+  position: relative;
+  margin: 18px 0;
+}
+
+.divider-text::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e2d8cd;
+  z-index: 1;
+}
+
+.divider-text span {
+  position: relative;
+  z-index: 2;
+  background: #fff;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #8c8076;
+}
+
+.standard-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-field label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #4a3e35;
+}
+
+.auth-field input {
+  height: 40px;
+  border: 1px solid #cfc4b9;
+  border-radius: 4px;
+  padding: 0 12px;
+  font-size: 13px;
+  background: #fff;
+  color: #222;
+}
+
+.auth-field input:focus {
+  outline: none;
+  border-color: #6d5548;
+}
+
+.btn-primary-auth-submit {
+  height: 44px;
+  background: #6d5548;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.15s;
+}
+
+.btn-primary-auth-submit:hover {
+  background: #543f34;
+}
+
+.form-error-banner {
+  padding: 10px 14px;
+  background: #fde8e4;
+  border: 1px solid #f8bab0;
+  color: #c93b27;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.auth-footer-links {
+  margin-top: 18px;
+  text-align: center;
+  border-top: 1px solid #ece4dc;
+  padding-top: 16px;
+}
+
+.register-prompt {
+  font-size: 13px;
+  color: #665b53;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-link-register {
+  background: none;
+  border: none;
+  color: #6d5548;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.branch-admin-prompt {
+  font-size: 11px;
+  color: #8c8076;
+  line-height: 1.5;
+}
+
+.register-db-info-banner {
+  background: #f4f0eb;
+  border: 1px solid #ded4c8;
+  border-radius: 4px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+  font-size: 12px;
+}
+
+.register-db-info-banner p {
+  margin: 4px 0 0;
+  color: #665b53;
+  line-height: 1.5;
+}
+
+.register-db-info-banner strong {
+  color: #44372e;
+}
+
