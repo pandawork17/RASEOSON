@@ -82,7 +82,41 @@ export const DEMO_ACCOUNTS = {
 
 export function LoginPage({ onSuccess, onGoRegister }) {
   const [activeRoleTab, setActiveRoleTab] = useState("buyer"); // 'buyer' | 'seller' | 'admin'
-  const [loginId, setLoginId] = useState("");
+
+  // 사용자가 직접 가입한 계정 목록 (로컬스토리지 연동)
+  const [customAccounts, setCustomAccounts] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("registered_demo_accounts") || "[]");
+      // 혹시 이미 가입된 pansingno(장고은) 계정이 로컬스토리지에 없다면 기본 탑재
+      const hasPansingno = stored.some((a) => a.login_id === "pansingno");
+      if (!hasPansingno) {
+        const initial = [
+          {
+            role: "buyer",
+            roleLabel: "구매자 (직접 가입)",
+            login_id: "pansingno",
+            password: "", // 1회 입력 시 자동 영구 저장
+            user_name: "장고은",
+            branch: "직접 가입 회원",
+            desc: "방금 직접 회원가입하여 MySQL DB에 등록된 신규 계정",
+            badgeColor: "#059669",
+            isNew: true,
+            isCustom: true,
+          },
+          ...stored,
+        ];
+        localStorage.setItem("registered_demo_accounts", JSON.stringify(initial));
+        return initial;
+      }
+      return stored;
+    } catch {
+      return [];
+    }
+  });
+
+  const [loginId, setLoginId] = useState(() => {
+    return localStorage.getItem("last_login_id") || "pansingno";
+  });
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -93,6 +127,38 @@ export function LoginPage({ onSuccess, onGoRegister }) {
     setSubmitting(true);
     try {
       const result = await api.login({ login_id: id, password: pw });
+
+      // 로그인 성공 시 해당 계정의 비밀번호를 로컬스토리지에 저장하여 다음번에 완전 원클릭 지원
+      try {
+        const stored = JSON.parse(localStorage.getItem("registered_demo_accounts") || "[]");
+        const exists = stored.find((a) => a.login_id === id);
+        let updated;
+        if (exists) {
+          updated = stored.map((a) => (a.login_id === id ? { ...a, password: pw } : a));
+        } else {
+          updated = [
+            {
+              role: "buyer",
+              roleLabel: "구매자 (직접 가입)",
+              login_id: id,
+              password: pw,
+              user_name: result.user.user_name || id,
+              branch: "직접 가입 회원",
+              desc: "로그인 완료된 계정 (원클릭 로그인 가능)",
+              badgeColor: "#059669",
+              isNew: true,
+              isCustom: true,
+            },
+            ...stored,
+          ];
+        }
+        localStorage.setItem("registered_demo_accounts", JSON.stringify(updated));
+        localStorage.setItem("last_login_id", id);
+        setCustomAccounts(updated);
+      } catch (e) {
+        console.error("Failed to update registered_demo_accounts", e);
+      }
+
       onSuccess(result);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "로그인에 실패했습니다.");
@@ -103,10 +169,32 @@ export function LoginPage({ onSuccess, onGoRegister }) {
   };
 
   const handleQuickLogin = (acc) => {
-    setLoadingAccountId(acc.login_id);
     setLoginId(acc.login_id);
-    setPassword(acc.password);
-    doLogin(acc.login_id, acc.password);
+    if (acc.password) {
+      setPassword(acc.password);
+      setLoadingAccountId(acc.login_id);
+      doLogin(acc.login_id, acc.password);
+    } else {
+      setPassword("");
+      setError(`[${acc.user_name}]님(${acc.login_id}) 계정의 비밀번호를 아래에 입력하고 [로그인] 버튼을 눌러주세요. 한 번 로그인하시면 다음부터는 원클릭으로 바로 로그인됩니다!`);
+      setTimeout(() => {
+        document.getElementById("login-pw-input")?.focus();
+      }, 100);
+    }
+  };
+
+  const handleRemoveCustomAccount = (e, targetLoginId) => {
+    e.stopPropagation();
+    if (!window.confirm("시연용 빠른 로그인 목록에서 이 계정을 제거하시겠습니까?\n(실제 DB 데이터는 삭제되지 않습니다)")) {
+      return;
+    }
+    const next = customAccounts.filter((a) => a.login_id !== targetLoginId);
+    setCustomAccounts(next);
+    try {
+      localStorage.setItem("registered_demo_accounts", JSON.stringify(next));
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -118,7 +206,11 @@ export function LoginPage({ onSuccess, onGoRegister }) {
     await doLogin(loginId.trim(), password.trim());
   };
 
-  const currentAccounts = DEMO_ACCOUNTS[activeRoleTab] || [];
+  // 구매자 모드일 때는 사용자가 직접 가입한 계정을 최상단에 배치
+  const currentAccounts =
+    activeRoleTab === "buyer"
+      ? [...customAccounts, ...DEMO_ACCOUNTS.buyer]
+      : DEMO_ACCOUNTS[activeRoleTab] || [];
 
   return (
     <main className="auth-page">
@@ -188,27 +280,46 @@ export function LoginPage({ onSuccess, onGoRegister }) {
 
           <div className="demo-accounts-grid">
             {currentAccounts.map((acc) => (
-              <div key={acc.login_id} className="demo-account-card">
+              <div
+                key={acc.login_id}
+                className={`demo-account-card ${acc.isNew ? "is-new-card" : ""}`}
+              >
                 <div className="demo-acc-top">
                   <div className="demo-acc-title">
                     <strong className="acc-name">{acc.user_name}</strong>
                     <span className="acc-id">({acc.login_id})</span>
                   </div>
-                  <span
-                    className="demo-branch-tag"
-                    style={{ borderColor: acc.badgeColor, color: acc.badgeColor }}
-                  >
-                    {acc.branch}
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span
+                      className={`demo-branch-tag ${acc.isNew ? "is-new-tag" : ""}`}
+                      style={!acc.isNew ? { borderColor: acc.badgeColor, color: acc.badgeColor } : {}}
+                    >
+                      {acc.isNew ? "✨ 방금 가입한 계정" : acc.branch}
+                    </span>
+                    {acc.isCustom && (
+                      <button
+                        type="button"
+                        className="btn-remove-custom-acc"
+                        title="시연 목록에서 숨기기"
+                        onClick={(e) => handleRemoveCustomAccount(e, acc.login_id)}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <p className="demo-acc-desc">{acc.desc}</p>
                 <button
                   type="button"
-                  className="btn-demo-quick-login"
+                  className={`btn-demo-quick-login ${acc.isNew ? "is-new-btn" : ""}`}
                   disabled={submitting}
                   onClick={() => handleQuickLogin(acc)}
                 >
-                  {loadingAccountId === acc.login_id ? "로그인 중..." : "원클릭 로그인 ➜"}
+                  {loadingAccountId === acc.login_id
+                    ? "로그인 중..."
+                    : acc.password
+                    ? "원클릭 로그인 ➜"
+                    : "계정 선택 ➜"}
                 </button>
               </div>
             ))}

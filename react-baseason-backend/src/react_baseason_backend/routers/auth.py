@@ -15,6 +15,29 @@ BUYER_ROLE_ID = 1
 DEFAULT_ORG_ID = 1  # 본사(headquarters) — storefront shoppers are associated with HQ by default
 
 
+def build_user_out(db: Session, user: models.User) -> schemas.UserOut:
+    roles = db.execute(
+        select(models.Role.role_code, models.Role.role_name)
+        .join(models.UserRole, models.UserRole.role_id == models.Role.role_id)
+        .where(models.UserRole.user_id == user.user_id)
+        .order_by(models.Role.role_id.desc())
+    ).all()
+    role_code = roles[0][0] if roles else None
+    role_name = roles[0][1] if roles else None
+
+    return schemas.UserOut(
+        user_id=user.user_id,
+        org_id=user.org_id,
+        login_id=user.login_id,
+        user_name=user.user_name,
+        email=user.email,
+        phone=user.phone,
+        user_status=user.user_status,
+        role_code=role_code,
+        role_name=role_name,
+    )
+
+
 @router.post("/register", response_model=schemas.TokenResponse, status_code=status.HTTP_201_CREATED)
 def register(payload: schemas.RegisterRequest, db: Session = Depends(get_db)):
     existing = db.execute(
@@ -45,7 +68,7 @@ def register(payload: schemas.RegisterRequest, db: Session = Depends(get_db)):
     db.refresh(user)
 
     token = create_access_token(user.user_id)
-    return schemas.TokenResponse(access_token=token, user=schemas.UserOut.model_validate(user))
+    return schemas.TokenResponse(access_token=token, user=build_user_out(db, user))
 
 
 @router.post("/login", response_model=schemas.TokenResponse)
@@ -61,12 +84,12 @@ def login(payload: schemas.LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="사용이 중지된 계정입니다.")
 
     token = create_access_token(user.user_id)
-    return schemas.TokenResponse(access_token=token, user=schemas.UserOut.model_validate(user))
+    return schemas.TokenResponse(access_token=token, user=build_user_out(db, user))
 
 
 @router.get("/me", response_model=schemas.UserOut)
-def read_me(current_user: models.User = Depends(get_current_user)):
-    return schemas.UserOut.model_validate(current_user)
+def read_me(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    return build_user_out(db, current_user)
 
 
 @router.patch("/me", response_model=schemas.UserOut)
@@ -91,7 +114,7 @@ def update_me(
     current_user.updated_at = datetime.datetime.utcnow()
     db.commit()
     db.refresh(current_user)
-    return schemas.UserOut.model_validate(current_user)
+    return build_user_out(db, current_user)
 
 
 @router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)

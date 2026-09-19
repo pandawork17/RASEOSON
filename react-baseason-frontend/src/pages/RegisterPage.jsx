@@ -46,6 +46,30 @@ export function RegisterPage({ onSuccess, onGoLogin }) {
       };
 
       const result = await api.register(payload);
+
+      // 로컬 스토리지에 가입한 계정 정보 저장 (빠른 시연 목록에 즉시 노출용)
+      try {
+        const stored = JSON.parse(localStorage.getItem("registered_demo_accounts") || "[]");
+        const newAccount = {
+          role: "buyer",
+          roleLabel: "구매자",
+          login_id: form.login_id.trim(),
+          password: form.password,
+          user_name: form.user_name.trim(),
+          branch: "직접 가입 회원",
+          desc: "방금 직접 회원가입하여 DB에 등록된 신규 계정",
+          badgeColor: "#059669",
+          isNew: true,
+          isCustom: true,
+          registeredAt: new Date().toISOString(),
+        };
+        const updated = [newAccount, ...stored.filter((a) => a.login_id !== newAccount.login_id)];
+        localStorage.setItem("registered_demo_accounts", JSON.stringify(updated));
+        localStorage.setItem("last_login_id", newAccount.login_id);
+      } catch (e) {
+        console.error("Failed to save registered account to localStorage", e);
+      }
+
       alert(`[${result.user.user_name}]님, 회원가입이 완료되었습니다!\nMySQL 데이터베이스(users 테이블)에 정상 등록되어 즉시 로그인됩니다.`);
       onSuccess(result);
     } catch (err) {

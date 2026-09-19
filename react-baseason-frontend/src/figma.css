@@ -1993,6 +1993,34 @@
   margin: 2px 0 6px;
 }
 
+.demo-account-card.is-new-card {
+  background: #f0fdf4;
+  border-color: #86efac;
+  box-shadow: 0 1px 3px rgba(16, 185, 129, 0.12);
+}
+
+.demo-branch-tag.is-new-tag {
+  background: #ecfdf5;
+  color: #059669;
+  border-color: #10b981;
+  font-weight: 700;
+}
+
+.btn-remove-custom-acc {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  color: #a3a3a3;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.btn-remove-custom-acc:hover {
+  color: #e11d48;
+}
+
 .btn-demo-quick-login {
   align-self: flex-end;
   padding: 5px 12px;
@@ -2004,6 +2032,14 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
+}
+
+.btn-demo-quick-login.is-new-btn {
+  background: #059669;
+}
+
+.btn-demo-quick-login.is-new-btn:hover {
+  background: #047857;
 }
 
 .btn-demo-quick-login:hover {

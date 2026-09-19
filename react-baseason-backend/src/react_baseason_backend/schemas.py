@@ -39,6 +39,8 @@ class UserOut(BaseModel):
     email: str
     phone: str | None = None
     user_status: str
+    role_code: str | None = None
+    role_name: str | None = None
 
 
 class TokenResponse(BaseModel):
