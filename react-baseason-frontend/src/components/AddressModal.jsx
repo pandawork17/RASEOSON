@@ -64,16 +64,22 @@ export function AddressModal({
       alert("받는 분 이름을 입력해주세요.");
       return;
     }
-    if (!phoneMid.trim() || !phoneEnd.trim()) {
-      alert("연락처를 모두 입력해주세요.");
+    const trimmedMid = phoneMid.trim();
+    const trimmedEnd = phoneEnd.trim();
+    if (trimmedMid.length !== 4 || trimmedEnd.length !== 4) {
+      alert("전화번호를 올바르게 입력해주세요.\n010-XXXX-XXXX 형식으로 가운데 4자리와 끝 4자리 숫자를 모두 입력해야 합니다.");
       return;
     }
     if (!zipcode.trim() || !address1.trim()) {
-      alert("주소를 입력해주세요.");
+      alert("우편번호 찾기를 통해 기본 주소를 입력해주세요.");
+      return;
+    }
+    if (!address2.trim()) {
+      alert("상세주소를 입력해주세요. (예: 101동 1203호, 2층 등)");
       return;
     }
 
-    const fullPhone = `${phonePrefix}-${phoneMid.trim()}-${phoneEnd.trim()}`;
+    const fullPhone = `${phonePrefix}-${trimmedMid}-${trimmedEnd}`;
     onSave({
       address_id: initialData?.address_id,
       receiver_name: receiverName.trim(),
@@ -81,7 +87,7 @@ export function AddressModal({
       zipcode: zipcode.trim(),
       address1: address1.trim(),
       address2: address2.trim(),
-      address_name: addressName.trim() || "기본배송지",
+      address_name: addressName.trim() || (isDefault ? "기본배송지" : ""),
       default_yn: isDefault ? "Y" : "N",
     });
   };
@@ -128,16 +134,18 @@ export function AddressModal({
               <input
                 type="text"
                 maxLength={4}
+                placeholder="0000"
                 value={phoneMid}
-                onChange={(e) => setPhoneMid(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => setPhoneMid(e.target.value.replace(/\D/g, "").slice(0, 4))}
                 required
               />
               <span>-</span>
               <input
                 type="text"
                 maxLength={4}
+                placeholder="0000"
                 value={phoneEnd}
-                onChange={(e) => setPhoneEnd(e.target.value.replace(/\D/g, ""))}
+                onChange={(e) => setPhoneEnd(e.target.value.replace(/\D/g, "").slice(0, 4))}
                 required
               />
             </div>
@@ -178,13 +186,14 @@ export function AddressModal({
           </div>
 
           <div className="form-group-row">
-            <label className="form-label">상세주소</label>
+            <label className="form-label required">상세주소</label>
             <div className="form-field">
               <input
                 type="text"
-                placeholder="상세 주소를 입력해주세요. (선택)"
+                placeholder="상세 주소를 입력해주세요. (예: 101동 1203호, 2층 등)"
                 value={address2}
                 onChange={(e) => setAddress2(e.target.value)}
+                required
               />
             </div>
           </div>

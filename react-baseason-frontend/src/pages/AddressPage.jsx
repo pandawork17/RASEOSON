@@ -32,10 +32,8 @@ export function AddressPage({
     setSaving(true);
     try {
       if (formData.address_id) {
-        // 백엔드에 배송지 수정 API가 별도로 없으므로, 새 주소 생성 후 기존 주소 삭제하거나 추가
-        // 우선 새 주소 생성 후 로컬 상태 반영
-        await api.deleteAddress(formData.address_id);
-        const created = await api.createAddress({
+        // 기존 배송지 수정
+        await api.updateAddress(formData.address_id, {
           address_name: formData.address_name,
           receiver_name: formData.receiver_name,
           receiver_phone: formData.receiver_phone,
@@ -44,13 +42,10 @@ export function AddressPage({
           address2: formData.address2,
           default_yn: formData.default_yn,
         });
-        setAddresses((prev) => [
-          created,
-          ...prev.filter((a) => a.address_id !== formData.address_id).map((a) => (formData.default_yn === "Y" ? { ...a, default_yn: "N" } : a)),
-        ]);
         alert("배송지가 수정되었습니다.");
       } else {
-        const created = await api.createAddress({
+        // 신규 배송지 추가
+        await api.createAddress({
           address_name: formData.address_name,
           receiver_name: formData.receiver_name,
           receiver_phone: formData.receiver_phone,
@@ -59,12 +54,11 @@ export function AddressPage({
           address2: formData.address2,
           default_yn: formData.default_yn,
         });
-        setAddresses((prev) => [
-          created,
-          ...prev.map((a) => (formData.default_yn === "Y" ? { ...a, default_yn: "N" } : a)),
-        ]);
         alert("배송지가 추가되었습니다.");
       }
+      // DB 상태와 완벽 동기화 (기본배송지 단 1개만 유지됨)
+      const latest = await api.getAddresses();
+      setAddresses(latest);
       setIsModalOpen(false);
     } catch (err) {
       alert(err instanceof ApiError ? err.message : "배송지 저장에 실패했습니다.");
@@ -73,11 +67,23 @@ export function AddressPage({
     }
   };
 
+  const handleSetDefault = async (addressId) => {
+    try {
+      await api.setDefaultAddress(addressId);
+      const latest = await api.getAddresses();
+      setAddresses(latest);
+      alert("기본 배송지가 변경되었습니다.");
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : "기본 배송지 설정에 실패했습니다.");
+    }
+  };
+
   const handleDelete = async (addressId) => {
     if (!window.confirm("이 배송지를 삭제하시겠습니까?")) return;
     try {
       await api.deleteAddress(addressId);
-      setAddresses((prev) => prev.filter((a) => a.address_id !== addressId));
+      const latest = await api.getAddresses();
+      setAddresses(latest);
       alert("배송지가 삭제되었습니다.");
     } catch (err) {
       alert(err instanceof ApiError ? err.message : "배송지 삭제에 실패했습니다.");
@@ -141,13 +147,19 @@ export function AddressPage({
               <div className="figma-address-cards-list">
                 {addresses.map((addr) => {
                   const isDefault = addr.default_yn === "Y";
-                  const badgeText = isDefault ? "기본배송지" : (addr.address_name || "배송지");
-                  const badgeClass = isDefault ? "badge-default" : "badge-custom";
 
                   return (
-                    <article className="figma-address-card" key={addr.address_id}>
+                    <article
+                      className={`figma-address-card ${isDefault ? "is-default-card" : ""}`}
+                      key={addr.address_id}
+                    >
                       <div className="addr-badge-col">
-                        <span className={`addr-badge ${badgeClass}`}>{badgeText}</span>
+                        {isDefault && (
+                          <span className="addr-badge badge-default">기본배송지</span>
+                        )}
+                        {!isDefault && addr.address_name && addr.address_name !== "기본배송지" && addr.address_name !== "배송지" && (
+                          <span className="addr-badge badge-custom">{addr.address_name}</span>
+                        )}
                       </div>
 
                       <div className="addr-user-col">
@@ -163,6 +175,15 @@ export function AddressPage({
                       </div>
 
                       <div className="addr-actions-col">
+                        {!isDefault && (
+                          <button
+                            type="button"
+                            className="btn-addr-action btn-set-default"
+                            onClick={() => handleSetDefault(addr.address_id)}
+                          >
+                            기본설정
+                          </button>
+                        )}
                         <button
                           type="button"
                           className="btn-addr-action"

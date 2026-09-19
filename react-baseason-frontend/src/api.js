@@ -71,6 +71,10 @@ export const api = {
   // addresses
   getAddresses: () => request("/api/addresses", { auth: true }),
   createAddress: (payload) => request("/api/addresses", { method: "POST", body: payload, auth: true }),
+  updateAddress: (addressId, payload) =>
+    request(`/api/addresses/${addressId}`, { method: "PUT", body: payload, auth: true }),
+  setDefaultAddress: (addressId) =>
+    request(`/api/addresses/${addressId}/default`, { method: "PATCH", auth: true }),
   deleteAddress: (addressId) => request(`/api/addresses/${addressId}`, { method: "DELETE", auth: true }),
 
   // orders

@@ -53,6 +53,56 @@ def create_address(
     return schemas.AddressOut.model_validate(address)
 
 
+@router.put("/{address_id}", response_model=schemas.AddressOut)
+def update_address(
+    address_id: int,
+    payload: schemas.AddressIn,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    address = db.get(models.UserAddress, address_id)
+    if address is None or address.user_id != current_user.user_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="배송지를 찾을 수 없습니다.")
+
+    if payload.default_yn == "Y":
+        db.query(models.UserAddress).filter(
+            models.UserAddress.user_id == current_user.user_id,
+            models.UserAddress.address_id != address_id,
+        ).update({"default_yn": "N"})
+
+    address.address_name = payload.address_name
+    address.receiver_name = payload.receiver_name
+    address.receiver_phone = payload.receiver_phone
+    address.zipcode = payload.zipcode
+    address.address1 = payload.address1
+    address.address2 = payload.address2
+    address.default_yn = payload.default_yn
+
+    db.commit()
+    db.refresh(address)
+    return schemas.AddressOut.model_validate(address)
+
+
+@router.patch("/{address_id}/default", response_model=schemas.AddressOut)
+def set_default_address(
+    address_id: int,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    address = db.get(models.UserAddress, address_id)
+    if address is None or address.user_id != current_user.user_id:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="배송지를 찾을 수 없습니다.")
+
+    db.query(models.UserAddress).filter(
+        models.UserAddress.user_id == current_user.user_id
+    ).update({"default_yn": "N"})
+
+    address.default_yn = "Y"
+    db.commit()
+    db.refresh(address)
+    return schemas.AddressOut.model_validate(address)
+
+
 @router.delete("/{address_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_address(
     address_id: int,
