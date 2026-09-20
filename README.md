@@ -1,7 +1,7 @@
 ## RASEOSON
 RASEOSON 홈쇼핑 본사/지사/구매자 홈페이지 관리
 
-#3조 git 규칙
+# 3조 git 규칙
 1. 각자 자기 branch에서만 작업한다.
 
 2. 작업한 내용은 자기 branch에 commit + push한다.
