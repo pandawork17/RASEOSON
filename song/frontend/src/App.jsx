@@ -242,7 +242,8 @@ export default function App() {
   const totalOrderPages = Math.ceil(
     orders.length / ordersPerPage,
   );
-
+  const [selectedOrderProduct, setSelectedOrderProduct] = useState(null);
+  const [openStatusOrderId, setOpenStatusOrderId] = useState(null);
   const paginatedOrders = orders.slice(
     (orderPage - 1) * ordersPerPage,
     orderPage * ordersPerPage,
@@ -1366,29 +1367,42 @@ product_id: item.product_id,
     borderBottom: "1px solid #EEE",
   }}
 >
-  <div
+<div
+onClick={() => {
+  console.log("상품 클릭됨:", order);
+  setSelectedOrderProduct(order);
+}}
+  style={{
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    cursor: "pointer",
+  }}
+  title="클릭하면 상품 상세정보를 볼 수 있습니다."
+>
+  {order.product_image && (
+    <img
+      src={order.product_image}
+      alt={order.product_name || "상품 이미지"}
+      style={{
+        width: 55,
+        height: 55,
+        objectFit: "cover",
+        borderRadius: 6,
+        border: "1px solid #DDD",
+      }}
+    />
+  )}
+
+  <span
     style={{
-      display: "flex",
-      alignItems: "center",
-      gap: 10,
+      textDecoration: "underline",
+      fontWeight: 600,
     }}
   >
-    {order.product_image && (
-      <img
-        src={order.product_image}
-        alt={order.product_name || "상품 이미지"}
-        style={{
-          width: 55,
-          height: 55,
-          objectFit: "cover",
-          borderRadius: 6,
-          border: "1px solid #DDD",
-        }}
-      />
-    )}
-
-    <span>{order.product_name || "-"}</span>
-  </div>
+    {order.product_name || "-"}
+  </span>
+</div>
 </td>
 
                   <td
@@ -1430,14 +1444,95 @@ product_id: item.product_id,
                     }}
                   >
                     
-                    <button
-                      style={{
-                        ...button,
-                        marginLeft: 6,
-                      }}
-                    >
-                      상태변경
-                    </button>
+                   <div
+  style={{
+    position: "relative",
+    display: "inline-block",
+  }}
+>
+  <button
+    type="button"
+    onClick={() => {
+      setOpenStatusOrderId(
+        openStatusOrderId === order.order_id
+          ? null
+          : order.order_id
+      );
+    }}
+    style={{
+      ...button,
+      marginLeft: 6,
+    }}
+  >
+    상태변경
+  </button>
+
+  {openStatusOrderId === order.order_id && (
+    <div
+      style={{
+        position: "absolute",
+        top: "calc(100% + 4px)",
+        right: 0,
+        width: 170,
+        background: "#FFFFFF",
+        border: "1px solid #D8D0C8",
+        borderRadius: 6,
+        boxShadow: "0 6px 18px rgba(0,0,0,0.18)",
+        zIndex: 10000,
+        overflow: "hidden",
+      }}
+    >
+      {[
+        "결제 완료",
+        "배송 전",
+        "배송시작(주문완료)",
+        "배송 중",
+        "배송 완료",
+        "환불 요청(배송전)",
+        "반품/환불 요청",
+        "교환 요청",
+        "환불 대기(배송전)",
+        "반품/환불 대기",
+        "교환 처리중",
+        "환불 완료(배송전)",
+        "반품/환불 완료",
+        "교환 완료",
+      ].map((status) => (
+        <button
+          key={status}
+          type="button"
+          onClick={() => {
+            console.log(
+              `주문 #${order.order_id} 상태 선택:`,
+              status
+            );
+
+            setOpenStatusOrderId(null);
+          }}
+          style={{
+            display: "block",
+            width: "100%",
+            padding: "9px 10px",
+            border: "none",
+            borderBottom: "1px solid #EEEEEE",
+            background: "#FFFFFF",
+            cursor: "pointer",
+            textAlign: "center",
+            fontSize: 12,
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "#F5F1ED";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "#FFFFFF";
+          }}
+        >
+          {status}
+        </button>
+      ))}
+    </div>
+  )}
+</div>
                   </td>
                 </tr>
               ))}
@@ -1481,6 +1576,168 @@ product_id: item.product_id,
           </div>
         )}
       </section>
+      {/* 상품 상세정보 팝업 */}
+{selectedOrderProduct && (
+  <div
+    onClick={() => setSelectedOrderProduct(null)}
+    style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "rgba(0, 0, 0, 0.55)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 9999,
+      padding: 20,
+    }}
+  >
+    <div
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        position: "relative",
+        width: "min(850px, 95vw)",
+        maxHeight: "90vh",
+        overflowY: "auto",
+        background: "#FFFFFF",
+        borderRadius: 12,
+        padding: 30,
+        boxShadow: "0 15px 45px rgba(0,0,0,0.3)",
+      }}
+    >
+      {/* 오른쪽 위 X */}
+      <button
+        onClick={() => setSelectedOrderProduct(null)}
+        style={{
+          position: "absolute",
+          top: 15,
+          right: 15,
+          border: "none",
+          background: "transparent",
+          fontSize: 28,
+          cursor: "pointer",
+        }}
+      >
+        ×
+      </button>
+
+      <h2 style={{ marginTop: 0, marginBottom: 25 }}>
+        상품 상세정보
+      </h2>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 30,
+          alignItems: "flex-start",
+          flexWrap: "wrap",
+        }}
+      >
+        {/* 확대 이미지 */}
+        <div
+          style={{
+            width: 320,
+            maxWidth: "100%",
+          }}
+        >
+          {selectedOrderProduct.product_image ? (
+            <img
+              src={selectedOrderProduct.product_image}
+              alt={
+                selectedOrderProduct.product_name ||
+                "상품 이미지"
+              }
+              style={{
+                width: "100%",
+                height: 320,
+                objectFit: "contain",
+                borderRadius: 10,
+                border: "1px solid #DDD",
+                background: "#F8F8F8",
+              }}
+            />
+          ) : (
+            <div
+              style={{
+                height: 320,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "1px solid #DDD",
+                borderRadius: 10,
+                background: "#F8F8F8",
+              }}
+            >
+              이미지 없음
+            </div>
+          )}
+        </div>
+
+        {/* 상세 정보 */}
+        <div
+          style={{
+            flex: 1,
+            minWidth: 260,
+            lineHeight: 2,
+          }}
+        >
+          <h2 style={{ marginTop: 0 }}>
+            {selectedOrderProduct.product_name || "-"}
+          </h2>
+
+          <p>
+            <strong>주문번호 :</strong>{" "}
+            #{selectedOrderProduct.order_id}
+          </p>
+
+          <p>
+            <strong>구매자 :</strong>{" "}
+            {selectedOrderProduct.buyer_name ||
+              selectedOrderProduct.user_name ||
+              `구매자 ${
+                selectedOrderProduct.buyer_id ||
+                selectedOrderProduct.user_id ||
+                "-"
+              }`}
+          </p>
+
+          <p>
+            <strong>결제금액 :</strong>{" "}
+            {Number(
+              selectedOrderProduct.total_amount ||
+                selectedOrderProduct.payment_amount ||
+                0
+            ).toLocaleString()}
+            원
+          </p>
+
+          <p>
+            <strong>결제상태 :</strong>{" "}
+            {selectedOrderProduct.payment_status || "-"}
+          </p>
+
+          <p>
+            <strong>주문상태 :</strong>{" "}
+            {selectedOrderProduct.order_status || "-"}
+          </p>
+
+          <button
+            onClick={() => setSelectedOrderProduct(null)}
+            style={{
+              ...button,
+              marginTop: 15,
+              padding: "10px 25px",
+            }}
+          >
+            닫기
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
           <section style={box}>
             <h2>1:1 문의 내역</h2>
 
@@ -5918,7 +6175,15 @@ function HeadquartersData({
     dbUserAddresses,
     setDbUserAddresses,
   ] = useState([]);
+  const [
+    dbRoles,
+    setDbRoles,
+  ] = useState([]);
 
+  const [
+    dbUserRoles,
+    setDbUserRoles,
+  ] = useState([]);
   // ==========================================================
   // 실제 DB 데이터 조회
   // ==========================================================
@@ -5933,6 +6198,14 @@ function HeadquartersData({
         "users",
         setDbUsers,
       ],
+        [
+    "roles",
+    setDbRoles,
+  ],
+  [
+    "user-roles",
+    setDbUserRoles,
+  ],
       [
         "products",
         setDbProducts,
@@ -6013,18 +6286,18 @@ function HeadquartersData({
         "ai-providers",
         setDbAiProviders,
       ],
-      [
-        "rag-documents",
-        setDbRagDocuments,
-      ],
-      [
-        "rag-document-files",
-        setDbRagDocumentFiles,
-      ],
-      [
-        "rag-chunks",
-        setDbRagChunks,
-      ],
+     [
+  "rag-documents",
+  setDbRagDocuments,
+],
+[
+  "rag-document-files",
+  setDbRagDocumentFiles,
+],
+[
+  "rag-chunks",
+  setDbRagChunks,
+],
       [
         "rag-embeddings",
         setDbRagEmbeddings,
@@ -6063,7 +6336,7 @@ function HeadquartersData({
       ],
     ];
 
-    apiList.forEach(
+       apiList.forEach(
       ([endpoint, setter]) => {
         fetch(
           `http://127.0.0.1:8000/api/${endpoint}`,
@@ -6093,1214 +6366,160 @@ function HeadquartersData({
             setter([]);
           });
       },
-    );
-  }, []);
-
+  );
+}, []);
   // ==========================================================
   // 테이블 목록
   // ==========================================================
+  const makeTable = (id, data) => {
+    const safeData = Array.isArray(data) ? data : [];
+    const columns =
+      safeData.length > 0
+        ? Object.keys(safeData[0])
+        : [];
 
-  const coreTables = [
-    {
-      id: "org_units",
-      label: "org_units",
-      count:
-        dbOrgUnits.length,
-      columns: [
-        "org_id",
-        "org_code",
-        "org_name",
-        "org_type",
-        "phone",
-      ],
-      rows:
-        dbOrgUnits.map(
-          (org) => [
-            org.org_id,
-            org.org_code,
-            org.org_name,
-            org.org_type,
-            org.phone,
-          ],
-        ),
-    },
+    return {
+      id,
+      label: id,
+      count: safeData.length,
+      columns,
+      rows: safeData.map((item) =>
+        columns.map((column) => item[column]),
+      ),
+    };
+  };
 
-    {
-      id: "users",
-      label: "users",
-      count:
-        dbUsers.length,
-      columns: [
-        "user_id",
-        "login_id",
-        "user_name",
-        "email",
-        "status",
-      ],
-      rows:
-        dbUsers.map(
-          (user) => [
-            user.user_id,
-            user.login_id,
-            user.user_name,
-            user.email,
-            user.user_status,
-          ],
-        ),
-    },
+    const coreTables = [
+    makeTable("org_units", dbOrgUnits),
+    makeTable("users", dbUsers),
 
-    {
-      id: "roles",
-      label: "roles",
-      count: 3,
-      columns: [
-        "role_id",
-        "role_name",
-        "description",
-      ],
-      rows: [
-        [
-          1,
-          "관리자",
-          "본사 통합 운영 권한",
-        ],
-        [
-          2,
-          "판매자",
-          "상품·재고 관리 권한",
-        ],
-        [
-          3,
-          "구매자",
-          "주문 조회 권한",
-        ],
-      ],
-    },
+    makeTable("products", dbProducts),
+    makeTable("orders", dbOrders),
+    makeTable("order_items", dbOrderItems),
+    makeTable("payments", dbPayments),
+    makeTable(
+      "payment_transactions",
+      dbPaymentTransactions,
+    ),
+    makeTable(
+      "payment_webhook_events",
+      dbPaymentWebhookEvents,
+    ),
+    makeTable(
+      "refund_policies",
+      dbRefundPolicies,
+    ),
+    makeTable(
+      "refund_requests",
+      dbRefundRequests,
+    ),
+    makeTable(
+      "refund_items",
+      dbRefundItems,
+    ),
 
-    {
-      id: "user_roles",
-      label: "user_roles",
-      count: 3,
-      columns: [
-        "user_role_id",
-        "user_id",
-        "role_id",
-        "assigned_at",
-      ],
-      rows: [
-        [
-          1,
-          1,
-          1,
-          "2026-09-15",
-        ],
-        [
-          2,
-          2,
-          2,
-          "2026-09-15",
-        ],
-        [
-          3,
-          3,
-          2,
-          "2026-09-15",
-        ],
-      ],
-    },
+    makeTable(
+      "buyer_inquiries",
+      dbBuyerInquiries,
+    ),
+    makeTable(
+      "inquiry_files",
+      dbInquiryFiles,
+    ),
+    makeTable(
+  "company_policies",
+  dbCompanyPolicies,
+),
+makeTable(
+  "policy_files",
+  dbPolicyFiles,
+),
+makeTable(
+  "roles",
+  dbRoles,
+),
+makeTable("categories", dbCategories),
+    makeTable(
+      "product_variants",
+      dbProductVariants,
+    ),
+    makeTable(
+      "inventories",
+      dbInventories,
+    ),
+    makeTable(
+      "file_assets",
+      dbFileAssets,
+    ),
+    makeTable(
+      "product_images",
+      dbProductImages,
+    ),
+    makeTable(
+      "product_files",
+      dbProductFiles,
+    ),
 
-    {
-      id: "products",
-      label: "products",
-      count:
-        dbProducts.length,
-      columns: [
-        "product_id",
-        "product_name",
-        "price",
-        "status",
-      ],
-      rows:
-        dbProducts.map(
-          (product) => [
-            product.product_id,
-            product.product_name,
-            product.price,
-            product.status,
-          ],
-        ),
-    },
+    makeTable(
+      "ai_providers",
+      dbAiProviders,
+    ),
+    makeTable(
+      "rag_documents",
+      dbRagDocuments,
+    ),
+    makeTable(
+      "rag_document_files",
+      dbRagDocumentFiles,
+    ),
+    makeTable(
+      "rag_chunks",
+      dbRagChunks,
+    ),
+    makeTable(
+      "rag_embeddings",
+      dbRagEmbeddings,
+    ),
+    makeTable(
+      "rag_query_logs",
+      dbRagQueryLogs,
+    ),
 
-    {
-      id: "orders",
-      label: "orders",
-      count:
-        dbOrders.length,
-      columns: [
-        "order_id",
-        "order_no",
-        "total_amount",
-        "order_status",
-        "process_status",
-      ],
-      rows:
-        dbOrders.map(
-          (order) => [
-            order.order_id,
-            order.order_no,
-            order.total_amount,
-            order.order_status,
-            order.process_status,
-          ],
-        ),
-    },
+    makeTable(
+      "branch_purchase_order_items",
+      dbBranchPurchaseOrderItems,
+    ),
+    makeTable(
+      "branch_purchase_orders",
+      dbBranchPurchaseOrders,
+    ),
+    makeTable(
+      "customer_shipments",
+      dbCustomerShipments,
+    ),
+    makeTable(
+      "hg_inventory",
+      dbHgInventory,
+    ),
 
-    {
-      id: "order_items",
-      label: "order_items",
-      count:
-        dbOrderItems.length,
-      columns: [
-        "order_item_id",
-        "order_id",
-        "product_id",
-        "product_name",
-        "quantity",
-        "unit_price",
-        "item_amount",
-        "item_status",
-      ],
-      rows:
-        dbOrderItems.map(
-          (item) => [
-            item.order_item_id,
-            item.order_id,
-            item.product_id,
-            item.product_name_snapshot,
-            item.quantity,
-            item.unit_price,
-            item.item_amount,
-            item.item_status,
-          ],
-        ),
-    },
-
-    {
-      id: "payments",
-      label: "payments",
-      count:
-        dbPayments.length,
-      columns: [
-        "payment_id",
-        "order_id",
-        "payment_method",
-        "payment_status",
-        "requested_amount",
-        "approved_amount",
-      ],
-      rows:
-        dbPayments.map(
-          (payment) => [
-            payment.payment_id,
-            payment.order_id,
-            payment.payment_method,
-            payment.payment_status,
-            payment.requested_amount,
-            payment.approved_amount,
-          ],
-        ),
-    },
-
-    {
-      id: "payment_transactions",
-      label:
-        "payment_transactions",
-      count:
-        dbPaymentTransactions.length,
-      columns: [
-        "transaction_id",
-        "payment_id",
-        "transaction_key",
-        "transaction_type",
-        "transaction_status",
-        "transaction_amount",
-        "pg_transaction_id",
-        "created_at",
-      ],
-      rows:
-        dbPaymentTransactions.map(
-          (transaction) => [
-            transaction.transaction_id,
-            transaction.payment_id,
-            transaction.transaction_key,
-            transaction.transaction_type,
-            transaction.transaction_status,
-            transaction.transaction_amount,
-            transaction.pg_transaction_id,
-            transaction.created_at,
-          ],
-        ),
-    },
-
-    {
-      id: "payment_webhook_events",
-      label:
-        "payment_webhook_events",
-      count:
-        dbPaymentWebhookEvents.length,
-      columns: [
-        "webhook_id",
-        "payment_id",
-        "pg_provider",
-        "event_type",
-        "event_id",
-        "processed_yn",
-        "received_at",
-        "processed_at",
-      ],
-      rows:
-        dbPaymentWebhookEvents.map(
-          (webhook) => [
-            webhook.webhook_id,
-            webhook.payment_id,
-            webhook.pg_provider,
-            webhook.event_type,
-            webhook.event_id,
-            webhook.processed_yn,
-            webhook.received_at,
-            webhook.processed_at,
-          ],
-        ),
-    },
-
-    {
-      id: "refund_policies",
-      label:
-        "refund_policies",
-      count:
-        dbRefundPolicies.length,
-      columns: [
-        "refund_policy_id",
-        "org_id",
-        "policy_name",
-        "allowed_days",
-        "unopened_refund_yn",
-        "opened_refund_yn",
-        "defective_refund_yn",
-        "shipping_fee_payer",
-        "effective_from",
-        "effective_to",
-        "active_yn",
-      ],
-      rows:
-        dbRefundPolicies.map(
-          (policy) => [
-            policy.refund_policy_id,
-            policy.org_id,
-            policy.policy_name,
-            policy.allowed_days,
-            policy.unopened_refund_yn,
-            policy.opened_refund_yn,
-            policy.defective_refund_yn,
-            policy.shipping_fee_payer,
-            policy.effective_from,
-            policy.effective_to,
-            policy.active_yn,
-          ],
-        ),
-    },
-
-    {
-      id: "refund_requests",
-      label:
-        "refund_requests",
-      count:
-        dbRefundRequests.length,
-      columns: [
-        "refund_request_id",
-        "org_id",
-        "order_id",
-        "buyer_user_id",
-        "refund_policy_id",
-        "refund_reason",
-        "requested_amount",
-        "approved_amount",
-        "refund_status",
-        "requested_at",
-        "approved_at",
-        "completed_at",
-      ],
-      rows:
-        dbRefundRequests.map(
-          (refund) => [
-            refund.refund_request_id,
-            refund.org_id,
-            refund.order_id,
-            refund.buyer_user_id,
-            refund.refund_policy_id,
-            refund.refund_reason,
-            refund.requested_amount,
-            refund.approved_amount,
-            refund.refund_status,
-            refund.requested_at,
-            refund.approved_at,
-            refund.completed_at,
-          ],
-        ),
-    },
-
-    {
-      id: "refund_items",
-      label:
-        "refund_items",
-      count:
-        dbRefundItems.length,
-      columns: [
-        "refund_item_id",
-        "org_id",
-        "refund_request_id",
-        "order_item_id",
-        "refund_quantity",
-        "refund_amount",
-      ],
-      rows:
-        dbRefundItems.map(
-          (item) => [
-            item.refund_item_id,
-            item.org_id,
-            item.refund_request_id,
-            item.order_item_id,
-            item.refund_quantity,
-            item.refund_amount,
-          ],
-        ),
-    },
-
-    {
-      id: "buyer_inquiries",
-      label:
-        "buyer_inquiries",
-      count:
-        dbBuyerInquiries.length,
-      columns: [
-        "inquiry_id",
-        "user_id",
-        "org_id",
-        "category_code",
-        "title",
-        "content",
-        "inquiry_status",
-        "secret_yn",
-        "answer_content",
-        "answered_by_user_id",
-        "created_at",
-        "updated_at",
-        "answered_at",
-      ],
-      rows:
-        dbBuyerInquiries.map(
-          (inquiry) => [
-            inquiry.inquiry_id,
-            inquiry.user_id,
-            inquiry.org_id,
-            inquiry.category_code,
-            inquiry.title,
-            inquiry.content,
-            inquiry.inquiry_status,
-            inquiry.secret_yn,
-            inquiry.answer_content,
-            inquiry.answered_by_user_id,
-            inquiry.created_at,
-            inquiry.updated_at,
-            inquiry.answered_at,
-          ],
-        ),
-    },
-
-    {
-      id: "inquiry_files",
-      label:
-        "inquiry_files",
-      count:
-        dbInquiryFiles.length,
-      columns: [
-        "inquiry_file_id",
-        "org_id",
-        "inquiry_id",
-        "file_id",
-        "created_at",
-      ],
-      rows:
-        dbInquiryFiles.map(
-          (file) => [
-            file.inquiry_file_id,
-            file.org_id,
-            file.inquiry_id,
-            file.file_id,
-            file.created_at,
-          ],
-        ),
-    },
-
-    {
-      id: "company_policies",
-      label:
-        "company_policies",
-      count:
-        dbCompanyPolicies.length,
-      columns: [
-        "policy_id",
-        "org_id",
-        "org_name",
-        "policy_code",
-        "policy_name",
-        "policy_version",
-        "policy_content",
-        "effective_from",
-        "active_yn",
-      ],
-      rows:
-        dbCompanyPolicies.map(
-          (policy) => [
-            policy.policy_id,
-            policy.org_id,
-            policy.org_name,
-            policy.policy_code,
-            policy.policy_name,
-            policy.policy_version,
-            policy.policy_content,
-            policy.effective_from,
-            policy.active_yn,
-          ],
-        ),
-    },
-
-    {
-      id: "policy_files",
-      label:
-        "policy_files",
-      count:
-        dbPolicyFiles.length,
-      columns: [
-        "policy_file_id",
-        "org_id",
-        "policy_id",
-        "file_id",
-        "display_order",
-      ],
-      rows:
-        dbPolicyFiles.map(
-          (file) => [
-            file.policy_file_id,
-            file.org_id,
-            file.policy_id,
-            file.file_id,
-            file.display_order,
-          ],
-        ),
-    },
-
-    {
-      id: "categories",
-      label: "categories",
-      count:
-        dbCategories.length,
-      columns: [
-        "category_id",
-        "parent_category_id",
-        "category_name",
-        "category_level",
-        "display_order",
-        "active_yn",
-      ],
-      rows:
-        dbCategories.map(
-          (category) => [
-            category.category_id,
-            category.parent_category_id,
-            category.category_name,
-            category.category_level,
-            category.display_order,
-            category.active_yn,
-          ],
-        ),
-    },
-
-    {
-      id: "product_variants",
-      label:
-        "product_variants",
-      count:
-        dbProductVariants.length,
-      columns: [
-        "variant_id",
-        "org_id",
-        "product_id",
-        "sku_code",
-        "option_name1",
-        "option_value1",
-        "option_name2",
-        "option_value2",
-        "additional_price",
-        "active_yn",
-      ],
-      rows:
-        dbProductVariants.map(
-          (variant) => [
-            variant.variant_id,
-            variant.org_id,
-            variant.product_id,
-            variant.sku_code,
-            variant.option_name1,
-            variant.option_value1,
-            variant.option_name2,
-            variant.option_value2,
-            variant.additional_price,
-            variant.active_yn,
-          ],
-        ),
-    },
-
-    {
-      id: "inventories",
-      label:
-        "inventories",
-      count:
-        dbInventories.length,
-      columns: [
-        "inventory_id",
-        "org_id",
-        "variant_id",
-        "stock_quantity",
-        "reserved_quantity",
-        "safety_stock",
-        "updated_at",
-      ],
-      rows:
-        dbInventories.map(
-          (inventory) => [
-            inventory.inventory_id,
-            inventory.org_id,
-            inventory.variant_id,
-            inventory.stock_quantity,
-            inventory.reserved_quantity,
-            inventory.safety_stock,
-            inventory.updated_at,
-          ],
-        ),
-    },
-
-    {
-      id: "file_assets",
-      label:
-        "file_assets",
-      count:
-        dbFileAssets.length,
-      columns: [
-        "file_id",
-        "org_id",
-        "file_type",
-        "storage_type",
-        "original_file_name",
-        "stored_file_name",
-        "file_extension",
-        "mime_type",
-        "file_size",
-        "storage_path",
-        "public_url",
-        "thumbnail_url",
-        "checksum_sha256",
-        "active_yn",
-        "created_at",
-      ],
-      rows:
-        dbFileAssets.map(
-          (file) => [
-            file.file_id,
-            file.org_id,
-            file.file_type,
-            file.storage_type,
-            file.original_file_name,
-            file.stored_file_name,
-            file.file_extension,
-            file.mime_type,
-            file.file_size,
-            file.storage_path,
-            file.public_url,
-            file.thumbnail_url,
-            file.checksum_sha256,
-            file.active_yn,
-            file.created_at,
-          ],
-        ),
-    },
-
-    {
-      id: "product_images",
-      label:
-        "product_images",
-      count:
-        dbProductImages.length,
-      columns: [
-        "product_image_id",
-        "org_id",
-        "product_id",
-        "file_id",
-        "image_type",
-        "alt_text",
-        "display_order",
-        "active_yn",
-        "created_at",
-      ],
-      rows:
-        dbProductImages.map(
-          (image) => [
-            image.product_image_id,
-            image.org_id,
-            image.product_id,
-            image.file_id,
-            image.image_type,
-            image.alt_text,
-            image.display_order,
-            image.active_yn,
-            image.created_at,
-          ],
-        ),
-    },
-
-    {
-      id: "product_files",
-      label:
-        "product_files",
-      count:
-        dbProductFiles.length,
-      columns: [
-        "product_file_id",
-        "org_id",
-        "product_id",
-        "file_id",
-        "file_category",
-        "file_description",
-        "display_order",
-        "created_at",
-      ],
-      rows:
-        dbProductFiles.map(
-          (file) => [
-            file.product_file_id,
-            file.org_id,
-            file.product_id,
-            file.file_id,
-            file.file_category,
-            file.file_description,
-            file.display_order,
-            file.created_at,
-          ],
-        ),
-    },
-
-    {
-      id: "ai_providers",
-      label:
-        "ai_providers",
-      count:
-        dbAiProviders.length,
-      columns: [
-        "provider_id",
-        "provider_code",
-        "provider_name",
-        "provider_type",
-        "base_url",
-        "chat_model",
-        "embedding_model",
-        "active_yn",
-        "created_at",
-      ],
-      rows:
-        dbAiProviders.map(
-          (provider) => [
-            provider.provider_id,
-            provider.provider_code,
-            provider.provider_name,
-            provider.provider_type,
-            provider.base_url,
-            provider.chat_model,
-            provider.embedding_model,
-            provider.active_yn,
-            provider.created_at,
-          ],
-        ),
-    },
-
-    {
-      id: "rag_documents",
-      label:
-        "rag_documents",
-      count:
-        dbRagDocuments.length,
-      columns: [
-        "document_id",
-        "provider_id",
-        "org_id",
-        "document_type",
-        "document_name",
-        "source_type",
-        "source_uri",
-        "content_text",
-        "version",
-        "document_status",
-        "created_at",
-        "updated_at",
-      ],
-      rows:
-        dbRagDocuments.map(
-          (document) => [
-            document.document_id,
-            document.provider_id,
-            document.org_id,
-            document.document_type,
-            document.document_name,
-            document.source_type,
-            document.source_uri,
-            document.content_text,
-            document.version,
-            document.document_status,
-            document.created_at,
-            document.updated_at,
-          ],
-        ),
-    },
-
-    {
-      id: "rag_document_files",
-      label:
-        "rag_document_files",
-      count:
-        dbRagDocumentFiles.length,
-      columns: [
-        "rag_document_file_id",
-        "org_id",
-        "document_id",
-        "file_id",
-      ],
-      rows:
-        dbRagDocumentFiles.map(
-          (file) => [
-            file.rag_document_file_id,
-            file.org_id,
-            file.document_id,
-            file.file_id,
-          ],
-        ),
-    },
-
-    {
-      id: "rag_chunks",
-      label:
-        "rag_chunks",
-      count:
-        dbRagChunks.length,
-      columns: [
-        "chunk_id",
-        "org_id",
-        "document_id",
-        "chunk_no",
-        "chunk_text",
-        "token_count",
-        "metadata_json",
-        "created_at",
-      ],
-      rows:
-        dbRagChunks.map(
-          (chunk) => [
-            chunk.chunk_id,
-            chunk.org_id,
-            chunk.document_id,
-            chunk.chunk_no,
-            chunk.chunk_text,
-            chunk.token_count,
-            chunk.metadata_json,
-            chunk.created_at,
-          ],
-        ),
-    },
-
-    {
-      id: "rag_embeddings",
-      label:
-        "rag_embeddings",
-      count:
-        dbRagEmbeddings.length,
-      columns: [
-        "embedding_id",
-        "org_id",
-        "chunk_id",
-        "embedding_provider",
-        "embedding_model",
-        "embedding_dimension",
-        "embedding_json",
-        "vector_db_type",
-        "vector_collection",
-        "vector_external_id",
-        "created_at",
-      ],
-      rows:
-        dbRagEmbeddings.map(
-          (embedding) => [
-            embedding.embedding_id,
-            embedding.org_id,
-            embedding.chunk_id,
-            embedding.embedding_provider,
-            embedding.embedding_model,
-            embedding.embedding_dimension,
-            embedding.embedding_json,
-            embedding.vector_db_type,
-            embedding.vector_collection,
-            embedding.vector_external_id,
-            embedding.created_at,
-          ],
-        ),
-    },
-
-    {
-      id: "rag_query_logs",
-      label:
-        "rag_query_logs",
-      count:
-        dbRagQueryLogs.length,
-      columns: [
-        "query_log_id",
-        "org_id",
-        "user_id",
-        "provider_id",
-        "question_text",
-        "response_text",
-        "retrieved_chunk_ids",
-        "prompt_tokens",
-        "completion_tokens",
-        "response_time_ms",
-        "created_at",
-      ],
-      rows:
-        dbRagQueryLogs.map(
-          (log) => [
-            log.query_log_id,
-            log.org_id,
-            log.user_id,
-            log.provider_id,
-            log.question_text,
-            log.response_text,
-            log.retrieved_chunk_ids,
-            log.prompt_tokens,
-            log.completion_tokens,
-            log.response_time_ms,
-            log.created_at,
-          ],
-        ),
-    },
-
-    {
-      id:
-        "branch_purchase_order_items",
-      label:
-        "branch_purchase_order_items",
-      count:
-        dbBranchPurchaseOrderItems.length,
-      columns: [
-        "branch_order_item_id",
-        "org_id",
-        "branch_order_id",
-        "product_id",
-        "variant_id",
-        "order_quantity",
-        "approved_quantity",
-        "received_quantity",
-        "unit_price",
-        "item_amount",
-        "created_at",
-      ],
-      rows:
-        dbBranchPurchaseOrderItems.map(
-          (item) => [
-            item.branch_order_item_id,
-            item.org_id,
-            item.branch_order_id,
-            item.product_id,
-            item.variant_id,
-            item.order_quantity,
-            item.approved_quantity,
-            item.received_quantity,
-            item.unit_price,
-            item.item_amount,
-            item.created_at,
-          ],
-        ),
-    },
-
-    {
-      id:
-        "branch_purchase_orders",
-      label:
-        "branch_purchase_orders",
-      count:
-        dbBranchPurchaseOrders.length,
-      columns: [
-        "branch_order_id",
-        "branch_order_no",
-        "org_id",
-        "head_org_id",
-        "requested_by_user_id",
-        "approved_by_user_id",
-        "order_status",
-        "request_note",
-        "requested_at",
-        "approved_at",
-        "shipped_at",
-        "received_at",
-        "updated_at",
-      ],
-      rows:
-        dbBranchPurchaseOrders.map(
-          (order) => [
-            order.branch_order_id,
-            order.branch_order_no,
-            order.org_id,
-            order.head_org_id,
-            order.requested_by_user_id,
-            order.approved_by_user_id,
-            order.order_status,
-            order.request_note,
-            order.requested_at,
-            order.approved_at,
-            order.shipped_at,
-            order.received_at,
-            order.updated_at,
-          ],
-        ),
-    },
-
-    {
-      id: "customer_shipments",
-      label:
-        "customer_shipments",
-      count:
-        dbCustomerShipments.length,
-      columns: [
-        "shipment_id",
-        "org_id",
-        "order_id",
-        "shipment_no",
-        "shipment_status",
-        "carrier_name",
-        "tracking_number",
-        "receiver_name",
-        "receiver_phone",
-        "zipcode",
-        "shipping_address1",
-        "shipping_address2",
-        "prepared_at",
-        "shipped_at",
-        "delivered_at",
-        "created_at",
-        "updated_at",
-      ],
-      rows:
-        dbCustomerShipments.map(
-          (shipment) => [
-            shipment.shipment_id,
-            shipment.org_id,
-            shipment.order_id,
-            shipment.shipment_no,
-            shipment.shipment_status,
-            shipment.carrier_name,
-            shipment.tracking_number,
-            shipment.receiver_name,
-            shipment.receiver_phone,
-            shipment.zipcode,
-            shipment.shipping_address1,
-            shipment.shipping_address2,
-            shipment.prepared_at,
-            shipment.shipped_at,
-            shipment.delivered_at,
-            shipment.created_at,
-            shipment.updated_at,
-          ],
-        ),
-    },
-
-    {
-      id: "hg_inventory",
-      label:
-        "hg_inventory",
-      count:
-        Array.isArray(
-          dbHgInventory,
-        )
-          ? dbHgInventory.length
-          : 0,
-      columns: [
-        "hg_inventory_id",
-        "org_id",
-        "product_id",
-        "variant_id",
-        "stock_quantity",
-        "reserved_quantity",
-        "safety_stock",
-        "available_quantity",
-        "updated_at",
-      ],
-      rows:
-        (
-          Array.isArray(
-            dbHgInventory,
-          )
-            ? dbHgInventory
-            : []
-        ).map(
-          (item) => [
-            item.hg_inventory_id,
-            item.org_id,
-            item.product_id,
-            item.variant_id,
-            item.stock_quantity,
-            item.reserved_quantity,
-            item.safety_stock,
-            item.available_quantity,
-            item.updated_at,
-          ],
-        ),
-    },
-
-    {
-      id: "notices",
-      label: "notices",
-      count:
-        dbNotices.length,
-      columns: [
-        "notice_id",
-        "title",
-        "created_at",
-        "updated_at",
-        "view_count",
-        "is_pinned",
-        "image",
-        "author_name",
-        "org_name",
-      ],
-      rows:
-        dbNotices.map(
-          (notice) => [
-            notice.notice_id,
-            notice.title,
-            notice.created_at,
-            notice.updated_at,
-            notice.view_count,
-            notice.is_pinned,
-            notice.image,
-            notice.author_name,
-            notice.org_name,
-          ],
-        ),
-    },
-
-    {
-      id:
-        "seller_profiles",
-      label:
-        "seller_profiles",
-      count:
-        Array.isArray(
-          dbSellerProfiles,
-        )
-          ? dbSellerProfiles.length
-          : 0,
-      columns: [
-        "seller_id",
-        "org_id",
-        "user_id",
-        "company_name",
-        "business_number",
-        "representative_name",
-        "settlement_bank",
-        "settlement_account",
-        "seller_status",
-        "created_at",
-      ],
-      rows:
-        (
-          Array.isArray(
-            dbSellerProfiles,
-          )
-            ? dbSellerProfiles
-            : []
-        ).map(
-          (item) => [
-            item.seller_id,
-            item.org_id,
-            item.user_id,
-            item.company_name,
-            item.business_number,
-            item.representative_name,
-            item.settlement_bank,
-            item.settlement_account,
-            item.seller_status,
-            item.created_at,
-          ],
-        ),
-    },
-
-    {
-      id:
-        "user_addresses",
-      label:
-        "user_addresses",
-      count:
-        Array.isArray(
-          dbUserAddresses,
-        )
-          ? dbUserAddresses.length
-          : 0,
-      columns: [
-        "address_id",
-        "org_id",
-        "user_id",
-        "address_name",
-        "receiver_name",
-        "receiver_phone",
-        "zipcode",
-        "address1",
-        "address2",
-        "default_yn",
-        "created_at",
-      ],
-      rows:
-        (
-          Array.isArray(
-            dbUserAddresses,
-          )
-            ? dbUserAddresses
-            : []
-        ).map(
-          (item) => [
-            item.address_id,
-            item.org_id,
-            item.user_id,
-            item.address_name,
-            item.receiver_name,
-            item.receiver_phone,
-            item.zipcode,
-            item.address1,
-            item.address2,
-            item.default_yn,
-            item.created_at,
-          ],
-        ),
-    },
+    makeTable("notices", dbNotices),
+    makeTable(
+      "seller_profiles",
+      dbSellerProfiles,
+    ),
+    makeTable(
+      "user_addresses",
+      dbUserAddresses,
+    ),
+       
+    makeTable(
+      "user_roles",
+      dbUserRoles,
+    ),
   ];
-
   const tables =
     coreTables;
-
+console.log("실제 coreTables 개수 =", coreTables.length);
   const table =
     tables.find(
       (item) =>
@@ -7800,16 +7019,14 @@ function HeadquartersData({
               />
             </div>
 
-            <table
-              style={{
-                width:
-                  "100%",
-                borderCollapse:
-                  "collapse",
-                minWidth:
-                  650,
-              }}
-            >
+           <table
+  style={{
+    width: "100%",
+    borderCollapse: "collapse",
+    tableLayout: "auto",
+    fontSize: 11,
+  }}
+>
               <thead>
                 <tr>
                   {table.columns.map(
@@ -7830,6 +7047,7 @@ function HeadquartersData({
                           borderBottom:
                             "1px solid #DCE4EE",
                           fontSize: 12,
+                          whiteSpace: "nowrap",
                         }}
                       >
                         {
@@ -7867,6 +7085,7 @@ function HeadquartersData({
                               borderBottom:
                                 "1px solid #E7ECF2",
                               fontSize: 13,
+                              whiteSpace: "nowrap",
                             }}
                           >
                             {cell ===
