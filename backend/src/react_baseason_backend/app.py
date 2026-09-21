@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import get_settings
-from .routers import addresses, auth, branch, categories, inquiries, notices, orders, products, refunds
+from .routers import addresses, auth, categories, inquiries, notices, orders, products, refunds
 
 settings = get_settings()
 
@@ -30,7 +30,6 @@ app.include_router(orders.router)
 app.include_router(refunds.router)
 app.include_router(notices.router)
 app.include_router(inquiries.router)
-app.include_router(branch.router)
 
 
 
