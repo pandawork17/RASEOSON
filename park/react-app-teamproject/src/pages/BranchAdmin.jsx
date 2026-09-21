@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { APP_PATHS } from '../config/paths.js';
 import './BranchAdmin.css';
 
 // ==========================================
@@ -456,8 +457,8 @@ function BranchAdmin() {
   };
 
   const handleLogout = () => {
-    alert('관리자 모드에서 로그아웃 되었습니다.');
-    navigate('/'); 
+    alert('판매자 모드에서 로그아웃 되었습니다.');
+    window.location.href = APP_PATHS.BUYER; 
   };
 
   const handleTabChange = (tabName) => {

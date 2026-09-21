@@ -1,0 +1,10 @@
+# Backup folder
+_backup_original/
+_backup*/
+.venv/
+node_modules/
+*.pyc
+__pycache__/
+dist/
+build/
+
