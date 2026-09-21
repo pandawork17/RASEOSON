@@ -1,0 +1,7 @@
+# Local environment and generated files
+backend/.env
+backend/.venv/
+**/__pycache__/
+**/*.py[oc]
+**/node_modules/
+
