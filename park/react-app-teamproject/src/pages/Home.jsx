@@ -14,7 +14,7 @@ function Home() {
       .then((res) => res.json())
       .then((data) => {
         console.log("데이터 수신 완료:", data);
-        setProducts(data);
+        setProducts(data.items);
       })
       .catch((err) => console.error("데이터 불러오기 에러:", err));
   }, []);

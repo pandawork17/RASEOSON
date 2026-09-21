@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./App.css";
 import NoticeList from "./NoticeList";
 import mainPhoto from "./assets/main-photo.jpg";
+import { APP_PATHS } from "./config/paths";
 
 // ============================================================
 // 공통 스타일
@@ -4874,12 +4875,47 @@ function CommonTopBar({
             </div>
 
             <div
-              onClick={() => setMenuOpen(false)}
               style={{
                 marginTop: 20,
-                padding: "13px 6px",
+                paddingTop: 12,
                 borderTop: "1px solid #BDA98A",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  alert("관리자 모드에서 로그아웃 되었습니다.");
+                  window.location.href = APP_PATHS.BUYER;
+                }}
+                style={{
+                  width: "100%",
+                  padding: "11px",
+                  backgroundColor: "#796252",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: "13px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "6px",
+                }}
+              >
+                🚪 로그아웃
+              </button>
+            </div>
+
+            <div
+              onClick={() => setMenuOpen(false)}
+              style={{
+                marginTop: 10,
+                padding: "10px 6px",
                 cursor: "pointer",
+                textAlign: "center",
+                fontSize: "12px",
+                color: "#796252",
               }}
             >
               ✕ 메뉴 닫기
@@ -5453,6 +5489,41 @@ function BrandLogin({
               }}
             >
               🔥 지사 인기 상품
+            </div>
+
+            {/* 공통 메인 복귀 로그아웃 버튼 (사이드바 하단) */}
+            <div
+              style={{
+                marginTop: "24px",
+                paddingTop: "16px",
+                borderTop: "1px solid #BDA98A",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  alert("관리자 모드에서 로그아웃 되었습니다.");
+                  window.location.href = APP_PATHS.BUYER;
+                }}
+                style={{
+                  width: "100%",
+                  padding: "12px",
+                  backgroundColor: "#796252",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontWeight: "bold",
+                  fontSize: "13px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                  boxShadow: "0 2px 5px rgba(0,0,0,0.12)",
+                }}
+              >
+                🚪 로그아웃
+              </button>
             </div>
           </div>
         </div>
