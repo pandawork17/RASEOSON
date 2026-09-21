@@ -18,6 +18,7 @@ import { NoticeListPage } from "./pages/NoticeListPage";
 import { NoticeDetailPage } from "./pages/NoticeDetailPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
+import { APP_PATHS } from "./config/paths";
 
 function mapCategoryCodeToLabel(code) {
   if (!code) return "기타";
@@ -281,6 +282,22 @@ function App() {
     setToken(result.access_token);
     setAuthUser(result.user);
     setMenuOpen(false);
+
+    const role = (result.user?.role_code || "").toUpperCase();
+    const loginId = (result.user?.login_id || "").toLowerCase();
+
+    if (role === "SELLER" || loginId.startsWith("seller")) {
+      alert(`[판매자 로그인 성공]\n${result.user?.user_name || loginId}님 환영합니다.\n판매자 페이지(park)로 이동합니다.`);
+      window.location.href = APP_PATHS.SELLER;
+      return;
+    }
+
+    if (role === "ADMIN" || loginId.startsWith("admin")) {
+      alert(`[관리자 로그인 성공]\n${result.user?.user_name || loginId}님 환영합니다.\n관리자 페이지(song)로 이동합니다.`);
+      window.location.href = APP_PATHS.ADMIN;
+      return;
+    }
+
     setPage("home");
     refreshInquiries(result.user?.user_id).catch(() => {});
   };
