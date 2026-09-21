@@ -118,7 +118,7 @@ function NoticeManagement({ selectedBranch }) {
 
   useEffect(() => {
     setLoading(true);
-    fetch('/api/notices')
+    fetch('/api/branch/notices')
       .then(res => res.json())
       .then(data => {
         setNotices(data);
@@ -300,7 +300,7 @@ function BranchAdmin() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/api/branches')
+    fetch('/api/branch/branches')
       .then(res => res.json())
       .then(data => {
         setDbBranches(data);
@@ -310,7 +310,7 @@ function BranchAdmin() {
         }
       });
 
-    fetch('/api/hq/products')
+    fetch('/api/branch/hq/products')
       .then(res => res.json())
       .then(data => setHqProducts(data));
   }, []);
@@ -320,9 +320,9 @@ function BranchAdmin() {
     setLoadingData(true);
 
     Promise.all([
-      fetch(`/api/branches/${selectedOrgId}/inventory`).then(res => res.json()),
-      fetch(`/api/branches/${selectedOrgId}/orders`).then(res => res.json()),
-      fetch(`/api/branches/${selectedOrgId}/inquiries`).then(res => res.json())
+      fetch(`/api/branch/branches/${selectedOrgId}/inventory`).then(res => res.json()),
+      fetch(`/api/branch/branches/${selectedOrgId}/orders`).then(res => res.json()),
+      fetch(`/api/branch/branches/${selectedOrgId}/inquiries`).then(res => res.json())
     ]).then(([invData, orderData, inquiryData]) => {
       setCurrentInventory(invData);
       setCurrentOrders(orderData);
@@ -339,7 +339,7 @@ function BranchAdmin() {
       alert("올바른 가격을 입력해주세요.");
       return;
     }
-    fetch(`/api/products/${productId}/price`, {
+    fetch(`/api/branch/products/${productId}/price`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ sale_price: Number(newPrice) })

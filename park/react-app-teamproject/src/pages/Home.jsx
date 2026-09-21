@@ -10,7 +10,7 @@ function Home() {
 
   // 💡 추가 2: 화면이 켜질 때 백엔드(/api/products)에 데이터 요청
   useEffect(() => {
-    fetch('/api/products')
+    fetch('/api/branch/products')
       .then((res) => res.json())
       .then((data) => {
         console.log("데이터 수신 완료:", data);
