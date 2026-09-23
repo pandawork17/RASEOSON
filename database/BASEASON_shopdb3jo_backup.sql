@@ -15,6 +15,7 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 -- 테이블 shopdb3jo.ai_providers 구조 내보내기
+DROP TABLE IF EXISTS `ai_providers`;
 CREATE TABLE IF NOT EXISTS `ai_providers` (
   `provider_id` bigint NOT NULL AUTO_INCREMENT COMMENT 'AI 제공자 식별자',
   `provider_code` varchar(50) NOT NULL COMMENT 'AI 제공자 코드',
@@ -37,6 +38,7 @@ INSERT INTO `ai_providers` (`provider_id`, `provider_code`, `provider_name`, `pr
 	(3, 'OLLAMA', 'Local Ollama', 'LOCAL', 'http://localhost:11434', 'LOCAL_LLM', 'nomic-embed-text', 'Y', '2026-09-09 16:22:31');
 
 -- 테이블 shopdb3jo.branch_notifications 구조 내보내기
+DROP TABLE IF EXISTS `branch_notifications`;
 CREATE TABLE IF NOT EXISTS `branch_notifications` (
   `id` int NOT NULL AUTO_INCREMENT,
   `org_id` varchar(50) NOT NULL,
@@ -46,18 +48,20 @@ CREATE TABLE IF NOT EXISTS `branch_notifications` (
   `is_read` tinyint(1) DEFAULT '0',
   `created_at` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 테이블 데이터 shopdb3jo.branch_notifications:~9 rows (대략적) 내보내기
+-- 테이블 데이터 shopdb3jo.branch_notifications:~6 rows (대략적) 내보내기
 DELETE FROM `branch_notifications`;
 INSERT INTO `branch_notifications` (`id`, `org_id`, `type`, `title`, `target_tab`, `is_read`, `created_at`) VALUES
-	(1, '전주지사', '주문', '신규 고객 주문이 3건 들어왔습니다.', 'orders', 0, '2026-09-22 16:59:56'),
-	(2, '전주지사', '문의', '새로운 고객 문의가 등록되었습니다.', 'inquiries', 0, '2026-09-22 16:59:56'),
+	(1, '전주지사', '주문', '신규 고객 주문이 3건 들어왔습니다.', 'orders', 1, '2026-09-22 16:59:56'),
+	(2, '전주지사', '문의', '새로운 고객 문의가 등록되었습니다.', 'inquiries', 1, '2026-09-22 16:59:56'),
 	(3, '부산지사', '재고', '스마트 후드티 재고가 안전재고 미만입니다.', 'inventory', 0, '2026-09-22 16:59:56'),
 	(4, '2', '주문', '[구매자김] 고객님의 신규 주문이 접수되었습니다.', 'orders', 1, '2026-09-22 17:23:58'),
-	(5, '2', '주문', '[구매자김] 고객님의 신규 주문이 접수되었습니다.', 'orders', 1, '2026-09-22 17:27:27');
+	(5, '2', '주문', '[구매자김] 고객님의 신규 주문이 접수되었습니다.', 'orders', 1, '2026-09-22 17:27:27'),
+	(6, '1', '발주', '[전주지사]에서 [[본사] 미니멀 싱글 코트 _ 브라운] 10개 발주 신청이 접수되었습니다.', 'restock-history', 0, '2026-09-23 10:21:06');
 
 -- 테이블 shopdb3jo.branch_purchase_order_items 구조 내보내기
+DROP TABLE IF EXISTS `branch_purchase_order_items`;
 CREATE TABLE IF NOT EXISTS `branch_purchase_order_items` (
   `branch_order_item_id` bigint NOT NULL AUTO_INCREMENT COMMENT '지사 발주 상세 식별자',
   `org_id` bigint NOT NULL COMMENT '조직 식별자',
@@ -80,17 +84,19 @@ CREATE TABLE IF NOT EXISTS `branch_purchase_order_items` (
   CONSTRAINT `fk_branch_po_item_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`),
   CONSTRAINT `fk_branch_po_item_variant` FOREIGN KEY (`variant_id`) REFERENCES `product_variants` (`variant_id`),
   CONSTRAINT `ck_branch_po_item_qty` CHECK ((`order_quantity` > 0))
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 테이블 데이터 shopdb3jo.branch_purchase_order_items:~4 rows (대략적) 내보내기
+-- 테이블 데이터 shopdb3jo.branch_purchase_order_items:~5 rows (대략적) 내보내기
 DELETE FROM `branch_purchase_order_items`;
 INSERT INTO `branch_purchase_order_items` (`branch_order_item_id`, `org_id`, `branch_order_id`, `product_id`, `variant_id`, `order_quantity`, `approved_quantity`, `received_quantity`, `unit_price`, `item_amount`, `created_at`) VALUES
 	(1, 2, 1, 1, 1, 10, NULL, 0, 800800.00, 8008000.00, '2026-09-16 09:00:00'),
 	(2, 2, 1, 1, 2, 15, NULL, 0, 800800.00, 12012000.00, '2026-09-16 09:00:00'),
 	(3, 3, 2, 13, 49, 20, 20, 0, 89000.00, 1780000.00, '2026-09-16 11:30:00'),
-	(4, 3, 2, 5, 17, 30, 30, 0, 59000.00, 1770000.00, '2026-09-16 11:30:00');
+	(4, 3, 2, 5, 17, 30, 30, 0, 59000.00, 1770000.00, '2026-09-16 11:30:00'),
+	(5, 2, 4, 1, 1, 10, NULL, 0, 600000.00, 6000000.00, '2026-09-23 10:21:06');
 
 -- 테이블 shopdb3jo.branch_purchase_orders 구조 내보내기
+DROP TABLE IF EXISTS `branch_purchase_orders`;
 CREATE TABLE IF NOT EXISTS `branch_purchase_orders` (
   `branch_order_id` bigint NOT NULL AUTO_INCREMENT COMMENT '지사 발주 식별자',
   `branch_order_no` varchar(50) NOT NULL COMMENT '지사 발주 번호',
@@ -115,15 +121,17 @@ CREATE TABLE IF NOT EXISTS `branch_purchase_orders` (
   CONSTRAINT `fk_branch_po_branch_org` FOREIGN KEY (`org_id`) REFERENCES `org_units` (`org_id`),
   CONSTRAINT `fk_branch_po_head_org` FOREIGN KEY (`head_org_id`) REFERENCES `org_units` (`org_id`),
   CONSTRAINT `fk_branch_po_requested_user` FOREIGN KEY (`requested_by_user_id`) REFERENCES `users` (`user_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 테이블 데이터 shopdb3jo.branch_purchase_orders:~2 rows (대략적) 내보내기
+-- 테이블 데이터 shopdb3jo.branch_purchase_orders:~3 rows (대략적) 내보내기
 DELETE FROM `branch_purchase_orders`;
 INSERT INTO `branch_purchase_orders` (`branch_order_id`, `branch_order_no`, `org_id`, `head_org_id`, `requested_by_user_id`, `approved_by_user_id`, `order_status`, `request_note`, `requested_at`, `approved_at`, `shipped_at`, `received_at`, `updated_at`) VALUES
 	(1, 'BPO-20260916-0001', 2, 1, 2, 1, 'WAITING_APPROVAL', '전주지사 2025 F/W 아우터 초도 발주 요청', '2026-09-16 09:00:00', NULL, NULL, NULL, '2026-09-16 10:00:00'),
-	(2, 'BPO-20260916-0002', 3, 1, 3, 1, 'SHIPPING', '부산지사 팬츠 및 니트 추가 보충 발주', '2026-09-16 11:30:00', '2026-09-16 14:00:00', '2026-09-17 09:00:00', NULL, '2026-09-17 09:00:00');
+	(2, 'BPO-20260916-0002', 3, 1, 3, 1, 'SHIPPING', '부산지사 팬츠 및 니트 추가 보충 발주', '2026-09-16 11:30:00', '2026-09-16 14:00:00', '2026-09-17 09:00:00', NULL, '2026-09-17 09:00:00'),
+	(4, 'BPO-20260923-0356', 2, 1, 2, NULL, 'WAITING_APPROVAL', '테스트 발주', '2026-09-23 10:21:06', NULL, NULL, NULL, '2026-09-23 10:21:06');
 
 -- 테이블 shopdb3jo.buyer_inquiries 구조 내보내기
+DROP TABLE IF EXISTS `buyer_inquiries`;
 CREATE TABLE IF NOT EXISTS `buyer_inquiries` (
   `inquiry_id` bigint NOT NULL AUTO_INCREMENT COMMENT '문의 식별자',
   `user_id` bigint NOT NULL COMMENT '사용자 식별자',
@@ -157,6 +165,7 @@ INSERT INTO `buyer_inquiries` (`inquiry_id`, `user_id`, `org_id`, `category_code
 	(5, 7, 1, '4)교환반품', '단순 변심 반품 시 택배비 차감 안내 문의', '니트 상품 수령했는데 색상이 저랑 안 어울려서 반품하고 싶습니다. 반품 신청하면 기사님이 방문하시나요?', 'ANSWERED', 'N', '안녕하세요 고객님, 베이스시즌입니다.\r\n마이페이지에서 반품 신청을 접수해 주시면 저희 측에서 CJ대한통운 수거 기사님을 자동으로 배정해 드립니다. 반품 배송비 3,000원은 결제 취소 금액에서 자동 차감됩니다.', 1, '2026-09-22 09:00:00', '2026-09-22 09:25:00', '2026-09-22 09:25:00');
 
 -- 테이블 shopdb3jo.categories 구조 내보내기
+DROP TABLE IF EXISTS `categories`;
 CREATE TABLE IF NOT EXISTS `categories` (
   `category_id` bigint NOT NULL AUTO_INCREMENT COMMENT '카테고리 식별자',
   `parent_category_id` bigint DEFAULT NULL COMMENT '상위 카테고리 식별자',
@@ -180,6 +189,7 @@ INSERT INTO `categories` (`category_id`, `parent_category_id`, `category_name`, 
 	(6, 2, 'MAN TO MAN', 2, 2, 'Y');
 
 -- 테이블 shopdb3jo.company_policies 구조 내보내기
+DROP TABLE IF EXISTS `company_policies`;
 CREATE TABLE IF NOT EXISTS `company_policies` (
   `policy_id` bigint NOT NULL AUTO_INCREMENT COMMENT '정책 식별자',
   `org_id` bigint DEFAULT NULL COMMENT '조직 식별자',
@@ -206,6 +216,7 @@ INSERT INTO `company_policies` (`policy_id`, `org_id`, `policy_code`, `policy_na
 	(3, 1, 'TERMS', '쇼핑몰 이용약관', '2026.1', 'TERMS', '2026년 스마트쇼핑 이용약관입니다.', '2026-01-01', NULL, 'Y', '2026-09-09 16:22:31');
 
 -- 테이블 shopdb3jo.customer_shipments 구조 내보내기
+DROP TABLE IF EXISTS `customer_shipments`;
 CREATE TABLE IF NOT EXISTS `customer_shipments` (
   `shipment_id` bigint NOT NULL AUTO_INCREMENT COMMENT '고객 배송 식별자',
   `org_id` bigint NOT NULL COMMENT '조직 식별자',
@@ -247,6 +258,7 @@ INSERT INTO `customer_shipments` (`shipment_id`, `org_id`, `order_id`, `shipment
 	(10, 2, 14, 'SHP-20260918-0014', 'DELIVERED', 'CJ대한통운', '6891-2345-0014', '구매자김', '010-4444-4444', '54999', '전북특별자치도 전주시 완산구 홍산로 123', '101동 1001호', '2026-09-18 22:10:00', '2026-09-18 22:30:00', '2026-09-20 11:00:00', '2026-09-18 22:10:00', '2026-09-20 11:00:00');
 
 -- 테이블 shopdb3jo.file_assets 구조 내보내기
+DROP TABLE IF EXISTS `file_assets`;
 CREATE TABLE IF NOT EXISTS `file_assets` (
   `file_id` bigint NOT NULL AUTO_INCREMENT COMMENT '파일 식별자',
   `org_id` bigint DEFAULT NULL COMMENT '조직 식별자',
@@ -298,6 +310,7 @@ INSERT INTO `file_assets` (`file_id`, `org_id`, `file_type`, `storage_type`, `or
 	(24, 1, 'IMAGE', 'LOCAL', 'charcoal.png', 'outer-1-opt-charcoal.png', 'png', 'image/png', 51200, '/images/products/outer/outer-1/options/charcoal.png', '/images/products/outer/outer-1/options/charcoal.png', '/images/products/outer/outer-1/options/charcoal.png', NULL, 'Y', '2026-09-01 10:00:00');
 
 -- 테이블 shopdb3jo.hg_inventory 구조 내보내기
+DROP TABLE IF EXISTS `hg_inventory`;
 CREATE TABLE IF NOT EXISTS `hg_inventory` (
   `hg_inventory_id` bigint NOT NULL AUTO_INCREMENT COMMENT '본사 재고 식별자',
   `org_id` bigint NOT NULL COMMENT '조직 식별자',
@@ -386,6 +399,7 @@ INSERT INTO `hg_inventory` (`hg_inventory_id`, `org_id`, `product_id`, `variant_
 	(64, 1, 16, 64, 100, 5, 20, '2026-09-01 10:00:00');
 
 -- 테이블 shopdb3jo.inquiry_files 구조 내보내기
+DROP TABLE IF EXISTS `inquiry_files`;
 CREATE TABLE IF NOT EXISTS `inquiry_files` (
   `inquiry_file_id` bigint NOT NULL AUTO_INCREMENT COMMENT '문의 첨부파일 식별자',
   `org_id` bigint NOT NULL,
@@ -411,6 +425,7 @@ INSERT INTO `inquiry_files` (`inquiry_file_id`, `org_id`, `inquiry_id`, `file_id
 	(5, 1, 5, 6, '2026-09-05 15:21:00');
 
 -- 테이블 shopdb3jo.inventories 구조 내보내기
+DROP TABLE IF EXISTS `inventories`;
 CREATE TABLE IF NOT EXISTS `inventories` (
   `inventory_id` bigint NOT NULL AUTO_INCREMENT COMMENT '재고 식별자',
   `org_id` bigint NOT NULL COMMENT '조직 식별자',
@@ -623,6 +638,7 @@ INSERT INTO `inventories` (`inventory_id`, `org_id`, `variant_id`, `stock_quanti
 	(192, 3, 64, 20, 0, 5, '2026-09-01 10:00:00');
 
 -- 테이블 shopdb3jo.notices 구조 내보내기
+DROP TABLE IF EXISTS `notices`;
 CREATE TABLE IF NOT EXISTS `notices` (
   `notice_id` bigint NOT NULL AUTO_INCREMENT,
   `title` varchar(200) NOT NULL,
@@ -651,6 +667,7 @@ INSERT INTO `notices` (`notice_id`, `title`, `content`, `author_id`, `org_id`, `
 	(5, '고객센터 상담 운영 시간 안내', '베이스시즌 고객만족센터 운영 시간 안내입니다.\r\n- 평일: 10:00 ~ 18:00 (점심시간 12:30 ~ 13:30)\r\n- 주말 및 공휴일: 휴무\r\n1:1 문의 게시판을 이용해 주시면 상담 시간 내 순차적으로 신속히 답변드리겠습니다.', 1, 1, '2026-09-16 09:30:00', '2026-09-16 09:30:00', 98, 'N', NULL);
 
 -- 테이블 shopdb3jo.order_items 구조 내보내기
+DROP TABLE IF EXISTS `order_items`;
 CREATE TABLE IF NOT EXISTS `order_items` (
   `order_item_id` bigint NOT NULL AUTO_INCREMENT COMMENT '주문상품 식별자',
   `org_id` bigint NOT NULL,
@@ -693,6 +710,7 @@ INSERT INTO `order_items` (`order_item_id`, `org_id`, `order_id`, `product_id`, 
 	(14, 2, 14, 16, 62, '와이드 팬츠 _ 아이보리 (사이즈: M (30))', 'KP1204-M', 1, 89000.00, 89000.00, '14) 교환완료');
 
 -- 테이블 shopdb3jo.orders 구조 내보내기
+DROP TABLE IF EXISTS `orders`;
 CREATE TABLE IF NOT EXISTS `orders` (
   `order_id` bigint NOT NULL AUTO_INCREMENT COMMENT '주문 식별자',
   `order_no` varchar(64) NOT NULL COMMENT '주문 번호',
@@ -739,6 +757,7 @@ INSERT INTO `orders` (`order_id`, `order_no`, `buyer_user_id`, `org_id`, `order_
 	(14, 'ORD-20260918-0014', 4, 2, '4) 결제완료후결제취소', '14) 교환완료', 89000.00, 0.00, 3000.00, 92000.00, '구매자김', '010-4444-4444', '54999', '전북특별자치도 전주시 완산구 홍산로 123', '101동 1001호', '2026-09-18 22:00:00', '2026-09-18 22:00:20');
 
 -- 테이블 shopdb3jo.org_units 구조 내보내기
+DROP TABLE IF EXISTS `org_units`;
 CREATE TABLE IF NOT EXISTS `org_units` (
   `org_id` bigint NOT NULL AUTO_INCREMENT COMMENT '조직 식별자',
   `parent_org_id` bigint DEFAULT NULL COMMENT '상위 조직 식별자',
@@ -770,6 +789,7 @@ INSERT INTO `org_units` (`org_id`, `parent_org_id`, `org_code`, `org_name`, `org
 	(4, 1, 'BR005', '베이스시즌 대구지사', 'BRANCH', '501-83-00005', '최대구', '010-8868-4457', 'daegu@baseason.co.kr', '41900', '대구광역시 중구 달구벌대로 200', '대구타워 4층', 'Y', '2024-01-05 09:00:00', '2026-09-23 09:15:17');
 
 -- 테이블 shopdb3jo.payment_transactions 구조 내보내기
+DROP TABLE IF EXISTS `payment_transactions`;
 CREATE TABLE IF NOT EXISTS `payment_transactions` (
   `transaction_id` bigint NOT NULL AUTO_INCREMENT COMMENT '결제 거래 식별자',
   `org_id` bigint NOT NULL,
@@ -810,6 +830,7 @@ INSERT INTO `payment_transactions` (`transaction_id`, `org_id`, `payment_id`, `t
 	(14, 2, 14, 'TXKEY-2026-0014', 'APPROVE', 'SUCCESS', 92000.00, 'TOSS-TX-2026-0014', 'IDEMP-2026-0014', NULL, '{"amount": 92000, "orderId": "ORD-20260918-0014", "paymentKey": "toss_payment_2026_0014"}', '{"status": "DONE"}', '2026-09-18 22:00:20');
 
 -- 테이블 shopdb3jo.payment_webhook_events 구조 내보내기
+DROP TABLE IF EXISTS `payment_webhook_events`;
 CREATE TABLE IF NOT EXISTS `payment_webhook_events` (
   `webhook_id` bigint NOT NULL AUTO_INCREMENT COMMENT '결제 웹훅 식별자',
   `org_id` bigint NOT NULL,
@@ -836,6 +857,7 @@ INSERT INTO `payment_webhook_events` (`webhook_id`, `org_id`, `payment_id`, `pg_
 	(2, 1, 5, 'TOSS', 'PAYMENT_STATUS_CHANGED', 'WEBHOOK-2026-001', '{"status": "DONE", "paymentKey": "toss_payment_2026_001"}', 'Y', NULL, '2026-01-20 09:32:10', '2026-01-20 09:32:11');
 
 -- 테이블 shopdb3jo.payments 구조 내보내기
+DROP TABLE IF EXISTS `payments`;
 CREATE TABLE IF NOT EXISTS `payments` (
   `payment_id` bigint NOT NULL AUTO_INCREMENT COMMENT '결제 식별자',
   `org_id` bigint NOT NULL,
@@ -885,6 +907,7 @@ INSERT INTO `payments` (`payment_id`, `org_id`, `order_id`, `pg_provider`, `paym
 	(14, 2, 14, 'TOSS', 'toss_payment_2026_0014', 'ORD-20260918-0014', 'CUSTOMER-2026-0004', 'NORMAL', 'CARD', 'DONE', 92000.00, 92000.00, 0.00, 92000.00, 'KRW', NULL, '2026-09-18 22:00:00', '2026-09-18 22:00:20', NULL, '2026-09-18 22:00:00');
 
 -- 테이블 shopdb3jo.policy_files 구조 내보내기
+DROP TABLE IF EXISTS `policy_files`;
 CREATE TABLE IF NOT EXISTS `policy_files` (
   `policy_file_id` bigint NOT NULL AUTO_INCREMENT COMMENT '정책 첨부파일 식별자',
   `org_id` bigint NOT NULL,
@@ -910,6 +933,7 @@ INSERT INTO `policy_files` (`policy_file_id`, `org_id`, `policy_id`, `file_id`, 
 	(5, 1, 3, 7, 1);
 
 -- 테이블 shopdb3jo.product_files 구조 내보내기
+DROP TABLE IF EXISTS `product_files`;
 CREATE TABLE IF NOT EXISTS `product_files` (
   `product_file_id` bigint NOT NULL AUTO_INCREMENT COMMENT '상품 파일 식별자',
   `org_id` bigint NOT NULL,
@@ -936,6 +960,7 @@ INSERT INTO `product_files` (`product_file_id`, `org_id`, `product_id`, `file_id
 	(3, 2, 6, 9, 'DETAIL', '01_상의_언더아머.png', 1, '2026-09-14 14:18:04');
 
 -- 테이블 shopdb3jo.product_images 구조 내보내기
+DROP TABLE IF EXISTS `product_images`;
 CREATE TABLE IF NOT EXISTS `product_images` (
   `product_image_id` bigint NOT NULL AUTO_INCREMENT COMMENT '상품 이미지 식별자',
   `org_id` bigint NOT NULL,
@@ -981,6 +1006,7 @@ INSERT INTO `product_images` (`product_image_id`, `org_id`, `product_id`, `file_
 	(21, 1, 16, 16, 'MAIN', '와이드 팬츠 _ 아이보리 대표 이미지', 1, 'Y', '2026-09-01 10:00:00');
 
 -- 테이블 shopdb3jo.product_variants 구조 내보내기
+DROP TABLE IF EXISTS `product_variants`;
 CREATE TABLE IF NOT EXISTS `product_variants` (
   `variant_id` bigint NOT NULL AUTO_INCREMENT COMMENT '상품 옵션 식별자',
   `org_id` bigint NOT NULL,
@@ -1069,6 +1095,7 @@ INSERT INTO `product_variants` (`variant_id`, `org_id`, `product_id`, `sku_code`
 	(64, 1, 16, 'KP1204-XL', '사이즈', 'XL (34)', NULL, NULL, 0.00, 'Y');
 
 -- 테이블 shopdb3jo.products 구조 내보내기
+DROP TABLE IF EXISTS `products`;
 CREATE TABLE IF NOT EXISTS `products` (
   `product_id` bigint NOT NULL AUTO_INCREMENT COMMENT '상품 식별자',
   `org_id` bigint NOT NULL,
@@ -1115,6 +1142,7 @@ INSERT INTO `products` (`product_id`, `org_id`, `seller_user_id`, `category_id`,
 	(16, 1, 2, 4, 'KP1204', '와이드 팬츠 _ 아이보리', '와이드 팬츠 _ 아이보리', '깔끔한 핏과 화사한 아이보리 톤의 코튼 와이드 팬츠입니다.', 89000.00, 89000.00, 'SALE', '2026-09-01 10:00:00', '2026-09-22 10:00:00');
 
 -- 테이블 shopdb3jo.rag_chunks 구조 내보내기
+DROP TABLE IF EXISTS `rag_chunks`;
 CREATE TABLE IF NOT EXISTS `rag_chunks` (
   `chunk_id` bigint NOT NULL AUTO_INCREMENT COMMENT '청크 식별자',
   `org_id` bigint NOT NULL,
@@ -1139,6 +1167,7 @@ INSERT INTO `rag_chunks` (`chunk_id`, `org_id`, `document_id`, `chunk_no`, `chun
 	(3, 1, 3, 1, '2026년 환불정책은 상품 수령 후 14일 이내 미개봉 상품의 환불을 허용합니다.', 30, '{"type": "refund", "year": 2026}', '2026-09-09 16:22:32');
 
 -- 테이블 shopdb3jo.rag_document_files 구조 내보내기
+DROP TABLE IF EXISTS `rag_document_files`;
 CREATE TABLE IF NOT EXISTS `rag_document_files` (
   `rag_document_file_id` bigint NOT NULL AUTO_INCREMENT COMMENT 'RAG 문서 파일 연결 식별자',
   `org_id` bigint NOT NULL,
@@ -1163,6 +1192,7 @@ INSERT INTO `rag_document_files` (`rag_document_file_id`, `org_id`, `document_id
 	(5, 1, 3, 7);
 
 -- 테이블 shopdb3jo.rag_documents 구조 내보내기
+DROP TABLE IF EXISTS `rag_documents`;
 CREATE TABLE IF NOT EXISTS `rag_documents` (
   `document_id` bigint NOT NULL AUTO_INCREMENT COMMENT '문서 식별자',
   `provider_id` bigint DEFAULT NULL COMMENT 'AI 제공자 식별자',
@@ -1192,6 +1222,7 @@ INSERT INTO `rag_documents` (`document_id`, `provider_id`, `org_id`, `document_t
 	(3, 1, 1, 'REFUND_POLICY', '2026 환불정책', 'DATABASE', 'refund_policy:3', '상품 수령 후 14일 이내 미개봉 상품은 환불 가능합니다.', '2026.1', 'INDEXED', '2026-01-01 09:00:00', '2026-09-09 16:22:31');
 
 -- 테이블 shopdb3jo.rag_embeddings 구조 내보내기
+DROP TABLE IF EXISTS `rag_embeddings`;
 CREATE TABLE IF NOT EXISTS `rag_embeddings` (
   `embedding_id` bigint NOT NULL AUTO_INCREMENT COMMENT '임베딩 식별자',
   `org_id` bigint NOT NULL,
@@ -1219,6 +1250,7 @@ INSERT INTO `rag_embeddings` (`embedding_id`, `org_id`, `chunk_id`, `embedding_p
 	(3, 1, 3, 'OPENAI', 'text-embedding-3-small', 1536, NULL, 'QDRANT', 'shop_policy', 'refund-2026-001', '2026-09-09 16:22:32');
 
 -- 테이블 shopdb3jo.rag_query_logs 구조 내보내기
+DROP TABLE IF EXISTS `rag_query_logs`;
 CREATE TABLE IF NOT EXISTS `rag_query_logs` (
   `query_log_id` bigint NOT NULL AUTO_INCREMENT COMMENT 'RAG 질의 로그 식별자',
   `org_id` bigint NOT NULL,
@@ -1250,6 +1282,7 @@ INSERT INTO `rag_query_logs` (`query_log_id`, `org_id`, `user_id`, `provider_id`
 	(5, 1, 8, 1, '상품 정보와 환불 정책을 함께 알려주세요.', '상품 정보와 환불 정책 관련 문서를 함께 검색하여 답변했습니다.', '[1, 2, 3]', 210, 95, 1050, '2026-09-06 10:40:00');
 
 -- 테이블 shopdb3jo.refund_items 구조 내보내기
+DROP TABLE IF EXISTS `refund_items`;
 CREATE TABLE IF NOT EXISTS `refund_items` (
   `refund_item_id` bigint NOT NULL AUTO_INCREMENT COMMENT '환불상품 식별자',
   `org_id` bigint NOT NULL,
@@ -1277,6 +1310,7 @@ INSERT INTO `refund_items` (`refund_item_id`, `org_id`, `refund_request_id`, `or
 	(6, 2, 6, 11, 1, 69000.00);
 
 -- 테이블 shopdb3jo.refund_policies 구조 내보내기
+DROP TABLE IF EXISTS `refund_policies`;
 CREATE TABLE IF NOT EXISTS `refund_policies` (
   `refund_policy_id` bigint NOT NULL AUTO_INCREMENT COMMENT '환불정책 식별자',
   `org_id` bigint DEFAULT NULL COMMENT '조직 식별자',
@@ -1304,6 +1338,7 @@ INSERT INTO `refund_policies` (`refund_policy_id`, `org_id`, `policy_name`, `all
 	(3, 1, '2026 기본 환불정책', 14, 'Y', 'N', 'Y', 'BUYER', '상품 수령 후 14일 이내 미개봉 상품은 환불 가능합니다.', '{"year": 2026, "allowedDays": 14}', '2026-01-01', NULL, 'Y');
 
 -- 테이블 shopdb3jo.refund_requests 구조 내보내기
+DROP TABLE IF EXISTS `refund_requests`;
 CREATE TABLE IF NOT EXISTS `refund_requests` (
   `refund_request_id` bigint NOT NULL AUTO_INCREMENT COMMENT '환불요청 식별자',
   `org_id` bigint NOT NULL,
@@ -1339,6 +1374,7 @@ INSERT INTO `refund_requests` (`refund_request_id`, `org_id`, `order_id`, `buyer
 	(6, 2, 11, 4, 1, '반품 입고 검수 완료 후 카드 결제 취소 완료되었습니다.', 72000.00, 72000.00, 'COMPLETED', '2026-09-19 18:00:00', '2026-09-19 18:30:00', '2026-09-20 10:00:00');
 
 -- 테이블 shopdb3jo.roles 구조 내보내기
+DROP TABLE IF EXISTS `roles`;
 CREATE TABLE IF NOT EXISTS `roles` (
   `role_id` bigint NOT NULL AUTO_INCREMENT COMMENT '권한 식별자',
   `role_code` varchar(30) NOT NULL COMMENT '권한 코드',
@@ -1356,6 +1392,7 @@ INSERT INTO `roles` (`role_id`, `role_code`, `role_name`, `description`) VALUES
 	(3, 'ADMIN', '관리자', '쇼핑몰 전체 관리');
 
 -- 테이블 shopdb3jo.seller_profiles 구조 내보내기
+DROP TABLE IF EXISTS `seller_profiles`;
 CREATE TABLE IF NOT EXISTS `seller_profiles` (
   `seller_id` bigint NOT NULL AUTO_INCREMENT COMMENT '판매자 프로필 식별자',
   `org_id` bigint NOT NULL,
@@ -1381,6 +1418,7 @@ INSERT INTO `seller_profiles` (`seller_id`, `org_id`, `user_id`, `company_name`,
 	(2, 2, 3, '베이스시즌 부산지사', '301-82-00003', '박부산', '국민은행', '220-456-789012', 'ACTIVE', '2026-09-09 16:22:31');
 
 -- 테이블 shopdb3jo.user_addresses 구조 내보내기
+DROP TABLE IF EXISTS `user_addresses`;
 CREATE TABLE IF NOT EXISTS `user_addresses` (
   `address_id` bigint NOT NULL AUTO_INCREMENT COMMENT '주소 식별자',
   `org_id` bigint NOT NULL,
@@ -1411,6 +1449,7 @@ INSERT INTO `user_addresses` (`address_id`, `org_id`, `user_id`, `address_name`,
 	(6, 1, 10, '자택', '테스터', '010-0000-0001', '06000', '서울특별시 강남구 테헤란로 100', '101호', 'Y', '2026-09-17 08:22:16');
 
 -- 테이블 shopdb3jo.user_roles 구조 내보내기
+DROP TABLE IF EXISTS `user_roles`;
 CREATE TABLE IF NOT EXISTS `user_roles` (
   `user_id` bigint NOT NULL COMMENT '사용자 식별자',
   `org_id` bigint NOT NULL,
@@ -1441,6 +1480,7 @@ INSERT INTO `user_roles` (`user_id`, `org_id`, `role_id`, `assigned_at`) VALUES
 	(15, 1, 1, '2026-09-19 16:57:00');
 
 -- 테이블 shopdb3jo.users 구조 내보내기
+DROP TABLE IF EXISTS `users`;
 CREATE TABLE IF NOT EXISTS `users` (
   `user_id` bigint NOT NULL AUTO_INCREMENT COMMENT '사용자 식별자',
   `org_id` bigint DEFAULT NULL COMMENT '조직 식별자',
@@ -1474,6 +1514,7 @@ INSERT INTO `users` (`user_id`, `org_id`, `login_id`, `password_hash`, `user_nam
 	(15, 1, 'some', '$pbkdf2-sha256$29000$cW4NIYTwHmMsBSDkXGuNcQ$tc9ggrAxK.INErqBag1rqS.KgrkfBszsyym844k8eMQ', '송준가', 'wnsrtdj@naver.com', '010-9999-9999', 'ACTIVE', '2026-09-19 07:57:00', '2026-09-22 10:00:00');
 
 -- 뷰 shopdb3jo.v_branch_purchase_order_status 구조 내보내기
+DROP VIEW IF EXISTS `v_branch_purchase_order_status`;
 -- VIEW 종속성 오류를 극복하기 위해 임시 테이블을 생성합니다.
 CREATE TABLE `v_branch_purchase_order_status` (
 	`branch_order_id` BIGINT NOT NULL COMMENT '지사 발주 식별자',
@@ -1500,6 +1541,7 @@ CREATE TABLE `v_branch_purchase_order_status` (
 );
 
 -- 뷰 shopdb3jo.v_customer_delivery_status 구조 내보내기
+DROP VIEW IF EXISTS `v_customer_delivery_status`;
 -- VIEW 종속성 오류를 극복하기 위해 임시 테이블을 생성합니다.
 CREATE TABLE `v_customer_delivery_status` (
 	`order_id` BIGINT NOT NULL COMMENT '주문 식별자',
@@ -1522,6 +1564,7 @@ CREATE TABLE `v_customer_delivery_status` (
 );
 
 -- 뷰 shopdb3jo.v_hq_inventory_status 구조 내보내기
+DROP VIEW IF EXISTS `v_hq_inventory_status`;
 -- VIEW 종속성 오류를 극복하기 위해 임시 테이블을 생성합니다.
 CREATE TABLE `v_hq_inventory_status` (
 	`hg_inventory_id` BIGINT NOT NULL COMMENT '본사 재고 식별자',
