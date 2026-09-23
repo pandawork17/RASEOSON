@@ -390,50 +390,98 @@ export default function BranchAdmin({ onSwitchRole }) {
   const restockStatusStyles = {
     '승인 대기': { bg: '#fef7e0', text: '#f29900' },
     '발주 승인': { bg: '#e6f4ea', text: '#1e8e3e' },
+    '출고완료': { bg: '#e0e7ff', text: '#4338ca' },
+    '입고 완료': { bg: '#e6f4ea', text: '#0d652d' },
+    '반려': { bg: '#fff0f0', text: '#d9534f' },
   };
 
-  const [restockHistory, setRestockHistory] = useState({ '전주지사': [], '부산지사': [] });
-  const currentRestockHistory = restockHistory[selectedBranch] || [];
+  const [restockList, setRestockList] = useState([]);
+  const currentRestockHistory = restockList.filter(item => {
+    if (selectedOrgId) {
+      return Number(item.orgId) === Number(selectedOrgId);
+    }
+    if (selectedBranch) {
+      if (selectedBranch.includes('부산')) return Number(item.orgId) === 3;
+      if (selectedBranch.includes('전주')) return Number(item.orgId) === 2;
+    }
+    return true;
+  });
 
-  const fetchRestockHistory = useCallback(() => {
-    Promise.all([
-      fetch('/api/branch-purchase-orders').then(r => r.json()).catch(() => []),
-      fetch('/api/branch-purchase-order-items').then(r => r.json()).catch(() => []),
-      fetch('/api/hq/products').then(r => r.json()).catch(() => []),
-    ]).then(([orders, items, products]) => {
-      if (!Array.isArray(orders) || !Array.isArray(items)) return;
-      const historyMap = { '전주지사': [], '부산지사': [] };
+  const fetchRestockHistory = useCallback(async () => {
+    try {
+      const [orders, items, products] = await Promise.all([
+        fetch('/api/branch-purchase-orders').then(r => r.json()).catch(() => []),
+        fetch('/api/branch-purchase-order-items').then(r => r.json()).catch(() => []),
+        fetch('/api/hq/products').then(r => r.json()).catch(() => []),
+      ]);
+
+      if (!Array.isArray(orders)) return;
       const prodMap = Array.isArray(products) ? Object.fromEntries(products.map(p => [p.id, p])) : {};
+      const allHistory = [];
+      const handledOrderIds = new Set();
 
-      items.forEach(item => {
-        const order = orders.find(o => Number(o.branch_order_id) === Number(item.branch_order_id));
-        const branchKey = Number(item.org_id) === 3 || Number(order?.org_id) === 3 ? '부산지사' : '전주지사';
-        const prod = prodMap[item.product_id];
+      if (Array.isArray(items)) {
+        items.forEach(item => {
+          const order = orders.find(o => Number(o.branch_order_id) === Number(item.branch_order_id));
+          if (order) handledOrderIds.add(Number(order.branch_order_id));
+          const branchOrgId = Number(item.org_id || order?.org_id || 2);
+          const orderStatus = order?.order_status || 'WAITING_APPROVAL';
 
-        let displayStatus = '승인 대기';
-        if (order?.order_status === 'SHIPPING' || order?.order_status === '발주 승인' || order?.order_status === '배송 중') {
-          displayStatus = '발주 승인';
-        } else if (order?.order_status === 'RECEIVED' || order?.order_status === '입고 완료') {
-          displayStatus = '입고 완료';
-        }
+          let displayStatus = '승인 대기';
+          if (['SHIPPING', '발주 승인', '배송 중', '배송중', '승인'].includes(orderStatus)) {
+            displayStatus = '발주 승인';
+          } else if (['RECEIVED', '입고 완료', '입고완료', '출고완료', '출고 완료'].includes(orderStatus)) {
+            displayStatus = '입고 완료';
+          } else if (['REJECTED', '반려', '거절'].includes(orderStatus)) {
+            displayStatus = '반려';
+          }
 
-        historyMap[branchKey].push({
-          id: item.branch_order_id || item.branch_order_item_id,
-          date: (order?.requested_at ? String(order.requested_at).slice(0, 10) : (item.created_at ? String(item.created_at).slice(0, 10) : '-')),
-          code: prod?.code || item.sku_code || `P${String(item.product_id).padStart(6, '0')}`,
-          name: prod?.name || `상품 #${item.product_id}`,
-          qty: Number(item.order_quantity || 0),
-          wholesalePrice: Number(item.unit_price || 0),
-          status: displayStatus,
+          const prod = prodMap[item.product_id];
+          allHistory.push({
+            id: item.branch_order_id || item.branch_order_item_id,
+            orderId: item.branch_order_id || order?.branch_order_id,
+            orgId: branchOrgId,
+            date: (order?.requested_at ? String(order.requested_at).slice(0, 10) : (item.created_at ? String(item.created_at).slice(0, 10) : '-')),
+            code: prod?.code || item.sku_code || `P${String(item.product_id).padStart(6, '0')}`,
+            name: prod?.name || `상품 #${item.product_id}`,
+            qty: Number(item.order_quantity || 0),
+            wholesalePrice: Number(item.unit_price || prod?.wholesalePrice || 0),
+            status: displayStatus,
+          });
         });
+      }
+
+      // 혹시 items 매핑에 없는 orders 보완
+      orders.forEach(order => {
+        if (!handledOrderIds.has(Number(order.branch_order_id))) {
+          let displayStatus = '승인 대기';
+          if (['SHIPPING', '발주 승인', '배송 중', '승인'].includes(order.order_status)) displayStatus = '발주 승인';
+          else if (['RECEIVED', '입고 완료', '출고완료'].includes(order.order_status)) displayStatus = '입고 완료';
+          else if (['REJECTED', '반려'].includes(order.order_status)) displayStatus = '반려';
+
+          allHistory.push({
+            id: order.branch_order_id,
+            orderId: order.branch_order_id,
+            orgId: Number(order.org_id || 2),
+            date: order.requested_at ? String(order.requested_at).slice(0, 10) : '-',
+            code: order.branch_order_no || 'BPO',
+            name: order.request_note || '본사 발주 요청건',
+            qty: 10,
+            wholesalePrice: 0,
+            status: displayStatus,
+          });
+        }
       });
-      setRestockHistory(historyMap);
-    }).catch(err => console.error("발주 내역 로드 실패:", err));
+
+      setRestockList(allHistory);
+    } catch (err) {
+      console.error("발주 내역 로드 실패:", err);
+    }
   }, []);
 
   useEffect(() => {
     fetchRestockHistory();
-  }, [fetchRestockHistory]);
+  }, [fetchRestockHistory, selectedOrgId]);
 
   const filteredInquiries = inquiryFilter === '전체' 
     ? currentInquiries 
@@ -447,11 +495,13 @@ export default function BranchAdmin({ onSwitchRole }) {
   const handleStockRequest = async (hqProduct, qty) => {
     const quantity = parseInt(qty, 10) || 1;
     const today = new Date().toISOString().split('T')[0];
-    const orgId = selectedOrgId || (selectedBranch === '부산지사' ? 3 : 2);
+    const orgId = Number(selectedOrgId || (selectedBranch.includes('부산') ? 3 : 2));
 
     const tempId = Date.now();
     const newRequest = {
       id: tempId,
+      orderId: tempId,
+      orgId: orgId,
       date: today,
       code: hqProduct.code,
       name: hqProduct.name,
@@ -459,10 +509,9 @@ export default function BranchAdmin({ onSwitchRole }) {
       wholesalePrice: hqProduct.wholesalePrice,
       status: '승인 대기'
     };
-    setRestockHistory(prev => ({
-      ...prev,
-      [selectedBranch]: [newRequest, ...(prev[selectedBranch] || [])]
-    }));
+    
+    // UI에 즉시 낙관적 반영
+    setRestockList(prev => [newRequest, ...prev]);
 
     try {
       const res = await fetch('/api/branch-purchase-orders', {
@@ -480,7 +529,7 @@ export default function BranchAdmin({ onSwitchRole }) {
       });
       if (res.ok) {
         alert(`[${selectedBranch}]에서 본사로 [${hqProduct.name}] ${quantity}개 발주를 신청했습니다.\n본사 관리자 시스템으로 실시간 전송되었습니다.`);
-        fetchRestockHistory();
+        await fetchRestockHistory();
       } else {
         alert(`[${selectedBranch}] 발주 신청이 접수되었습니다.`);
       }
@@ -491,18 +540,16 @@ export default function BranchAdmin({ onSwitchRole }) {
   };
 
   const handleRestockStatusChange = async (orderId, newStatus) => {
-    setRestockHistory(prev => {
-      const updatedHistory = (prev[selectedBranch] || []).map(req => 
-        req.id === orderId ? { ...req, status: newStatus } : req
-      );
-      return { ...prev, [selectedBranch]: updatedHistory };
-    });
+    setRestockList(prev => prev.map(req => 
+      req.id === orderId || req.orderId === orderId ? { ...req, status: newStatus } : req
+    ));
 
     try {
+      const dbStatus = newStatus === '발주 승인' ? 'SHIPPING' : (newStatus === '입고 완료' ? 'RECEIVED' : (newStatus === '반려' ? 'REJECTED' : newStatus));
       await fetch(`/api/branch-purchase-orders/${orderId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order_status: newStatus }),
+        body: JSON.stringify({ order_status: dbStatus }),
       });
     } catch (err) {
       console.error('발주 상태 변경 오류:', err);
@@ -542,6 +589,9 @@ export default function BranchAdmin({ onSwitchRole }) {
   const handleTabChange = (tabName) => {
     setActiveTab(tabName);
     setReplyingInquiry(null);
+    if (tabName === 'restock-history' || tabName === 'b2b-order') {
+      fetchRestockHistory();
+    }
   };
   
   const handleBranchChange = (branch) => {
@@ -989,7 +1039,7 @@ export default function BranchAdmin({ onSwitchRole }) {
                           <td style={{ color: '#555' }}>{req.date}</td>
                           <td>{req.wholesalePrice ? `${req.wholesalePrice.toLocaleString()}원` : '-'}</td>
                           <td><strong>{req.qty}</strong> 개</td>
-                          <td><CustomDropdown currentStatus={req.status} onStatusChange={(newStatus) => handleRestockStatusChange(req.id, newStatus)} statusStyles={restockStatusStyles} /></td>
+                          <td><CustomDropdown currentStatus={req.status} onStatusChange={(newStatus) => handleRestockStatusChange(req.orderId || req.id, newStatus)} statusStyles={restockStatusStyles} /></td>
                         </tr>
                       ))
                     )}
