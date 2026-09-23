@@ -1,2 +1,0 @@
-# common-backend routers package
-

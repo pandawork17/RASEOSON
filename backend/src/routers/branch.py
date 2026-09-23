@@ -256,15 +256,15 @@ def get_branch_notifications(org_id: int, db: Session = Depends(get_db)):
     sql = text("""
         SELECT id, org_id, type, title, target_tab, is_read, created_at
         FROM branch_notifications
-        WHERE is_read = 0
-          AND (
+        WHERE (
               org_id = :str_org_id 
               OR org_id = :org_name 
               OR org_id = :short_name 
               OR (:org_name != '' AND :org_name LIKE CONCAT('%', org_id, '%'))
               OR org_id = 'ALL'
           )
-        ORDER BY created_at DESC, id DESC
+        ORDER BY is_read ASC, created_at DESC, id DESC
+        LIMIT 50
     """)
     rows = db.execute(sql, {
         "str_org_id": str(org_id),

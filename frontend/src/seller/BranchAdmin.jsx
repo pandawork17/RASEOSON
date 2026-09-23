@@ -614,13 +614,32 @@ export default function BranchAdmin({ onSwitchRole }) {
         method: 'PUT'
       });
       
-      // 3. 화면(상태)에서도 즉시 제거 (배지 숫자 자동 차감)
-      setNotifications(prev => Array.isArray(prev) ? prev.filter(notif => notif.id !== id) : []);
+      // 3. 화면(상태)에서 읽음 처리로 변경 (목록에서 유지되면서 배지 수만 차감)
+      setNotifications(prev => Array.isArray(prev) ? prev.map(notif => 
+        notif.id === id ? { ...notif, is_read: true, isRead: true } : notif
+      ) : []);
       
     } catch (error) {
       console.error("알림 확인 처리 중 오류 발생:", error);
     }
   };
+
+  // ▼ 전체 알림 읽음 처리 함수 ▼
+  const handleReadAllNotifications = async () => {
+    if (!selectedOrgId) return;
+    try {
+      await fetch(`/api/branches/${selectedOrgId}/notifications/read-all`, {
+        method: 'PUT'
+      });
+      setNotifications(prev => Array.isArray(prev) ? prev.map(notif => ({ ...notif, is_read: true, isRead: true })) : []);
+    } catch (error) {
+      console.error("전체 알림 읽음 처리 중 오류:", error);
+    }
+  };
+
+  const unreadCount = Array.isArray(notifications)
+    ? notifications.filter(notif => !notif.is_read && !notif.isRead).length
+    : 0;
 
   return (
     <div className="branch-admin-wrapper" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
@@ -635,9 +654,24 @@ export default function BranchAdmin({ onSwitchRole }) {
              {/* ▼ 추가된 알람 아이콘 (🔔) 영역 ▼ */}
              <div style={{ position: 'relative', cursor: 'pointer' }} onClick={() => setIsAlarmOpen(!isAlarmOpen)}>
                  <span style={{ fontSize: '20px' }}>🔔</span>
-                 <span style={{ position: 'absolute', top: '-5px', right: '-8px', background: '#e53935', color: 'white', borderRadius: '50%', padding: '2px 5px', fontSize: '10px', fontWeight: 'bold' }}>
-                   {Array.isArray(notifications) ? notifications.length : 0}
-                 </span>
+                 {unreadCount > 0 && (
+                   <span style={{ 
+                     position: 'absolute', 
+                     top: '-5px', 
+                     right: '-8px', 
+                     background: '#e53935', 
+                     color: 'white', 
+                     borderRadius: '50%', 
+                     padding: '2px 5px', 
+                     fontSize: '10px', 
+                     fontWeight: 'bold',
+                     minWidth: '15px',
+                     textAlign: 'center',
+                     lineHeight: '1'
+                   }}>
+                     {unreadCount}
+                   </span>
+                 )}
              </div>
 
              {/* ▼ 알림센터 드롭다운 (아이콘 클릭 시 렌더링) ▼ */}
@@ -646,7 +680,7 @@ export default function BranchAdmin({ onSwitchRole }) {
                  position: 'absolute',
                  top: '130%',
                  right: '50px', 
-                 width: '320px',
+                 width: '340px',
                  backgroundColor: '#fff',
                  border: '1px solid #ddd',
                  borderRadius: '12px',
@@ -655,9 +689,26 @@ export default function BranchAdmin({ onSwitchRole }) {
                  color: '#333',
                  overflow: 'hidden'
                }}>
-                 <div style={{ padding: '15px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                   <span style={{ fontWeight: 'bold', fontSize: '16px' }}>알림창</span>
-                   <span style={{ cursor: 'pointer', color: '#999', fontSize: '18px' }} onClick={() => setIsAlarmOpen(false)}>✕</span>
+                 <div style={{ padding: '12px 16px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#fafafa' }}>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                     <span style={{ fontWeight: 'bold', fontSize: '15px' }}>알림창</span>
+                     {unreadCount > 0 && (
+                       <span style={{ fontSize: '11px', background: '#ffebee', color: '#c62828', padding: '2px 6px', borderRadius: '10px', fontWeight: 'bold' }}>
+                         {unreadCount}건 미확인
+                       </span>
+                     )}
+                   </div>
+                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                     {unreadCount > 0 && (
+                       <button 
+                         onClick={handleReadAllNotifications} 
+                         style={{ background: 'none', border: 'none', color: '#1a73e8', fontSize: '12px', cursor: 'pointer', padding: 0, fontWeight: '500' }}
+                       >
+                         모두 읽음
+                       </button>
+                     )}
+                     <span style={{ cursor: 'pointer', color: '#999', fontSize: '18px' }} onClick={() => setIsAlarmOpen(false)}>✕</span>
+                   </div>
                  </div>
                  
                  {/* maxHeight를 350px로 주어 약 5개의 알림만 보이고 나머지는 스크롤되도록 설정 */}
@@ -667,34 +718,55 @@ export default function BranchAdmin({ onSwitchRole }) {
                        🔔 새로운 알림이 없습니다.
                      </div>
                    ) : (
-                     notifications.map(notif => (
-                       <div 
-                         key={notif.id} 
-                         // ▼ id 및 targetTab 값 넘겨주기 ▼
-                         onClick={() => handleNotificationClick(notif.id, notif.targetTab || notif.target_tab)}
-                         style={{
-                           padding: '15px',
-                           borderBottom: '1px solid #f5f5f5',
-                           cursor: 'pointer',
-                           display: 'flex',
-                           flexDirection: 'column',
-                           gap: '6px',
-                           transition: 'background-color 0.2s'
-                         }}
-                         onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
-                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                       >
-                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#1a73e8', backgroundColor: '#e8f0fe', padding: '2px 6px', borderRadius: '4px' }}>
-                             {notif.type}
-                           </span>
-                           <span style={{ fontSize: '11px', color: '#999' }}>{notif.date}</span>
+                     notifications.map(notif => {
+                       const isUnread = !notif.is_read && !notif.isRead;
+                       return (
+                         <div 
+                           key={notif.id} 
+                           onClick={() => handleNotificationClick(notif.id, notif.targetTab || notif.target_tab)}
+                           style={{
+                             padding: '12px 16px',
+                             borderBottom: '1px solid #f0f0f0',
+                             cursor: 'pointer',
+                             display: 'flex',
+                             flexDirection: 'column',
+                             gap: '6px',
+                             backgroundColor: isUnread ? '#f8fafd' : '#fff',
+                             borderLeft: isUnread ? '3px solid #1a73e8' : '3px solid transparent',
+                             transition: 'background-color 0.15s'
+                           }}
+                           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = isUnread ? '#edf4fc' : '#f9f9f9'}
+                           onMouseLeave={(e) => e.currentTarget.style.backgroundColor = isUnread ? '#f8fafd' : '#fff'}
+                         >
+                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                               <span style={{ 
+                                 fontSize: '11px', 
+                                 fontWeight: 'bold', 
+                                 color: isUnread ? '#1a73e8' : '#666', 
+                                 backgroundColor: isUnread ? '#e8f0fe' : '#f0f0f0', 
+                                 padding: '2px 6px', 
+                                 borderRadius: '4px' 
+                               }}>
+                                 {notif.type}
+                               </span>
+                               {isUnread && (
+                                 <span style={{ fontSize: '10px', color: '#e53935', fontWeight: 'bold' }}>NEW</span>
+                               )}
+                             </div>
+                             <span style={{ fontSize: '11px', color: '#999' }}>{notif.date}</span>
+                           </div>
+                           <div style={{ 
+                             fontSize: '13px', 
+                             color: isUnread ? '#111' : '#777', 
+                             fontWeight: isUnread ? '600' : 'normal', 
+                             lineHeight: '1.4' 
+                           }}>
+                             {notif.title}
+                           </div>
                          </div>
-                         <div style={{ fontSize: '13px', color: '#333', fontWeight: '500', lineHeight: '1.4' }}>
-                           {notif.title}
-                         </div>
-                       </div>
-                     ))
+                       );
+                     })
                    )}
                  </div>
                </div>

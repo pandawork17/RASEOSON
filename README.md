@@ -36,9 +36,8 @@
 
 ```
 BASEOSON_final/
-├── 1_백엔드실행.bat          # [원클릭] 백엔드 가상환경 세팅 및 서버 자동 실행
-├── 2_프론트엔드실행.bat       # [원클릭] 프론트엔드 패키지 설치 및 Vite 서버 자동 실행
 ├── README.md                # [본 문서] 타 컴퓨터 구동 및 실행 매뉴얼
+├── .gitignore               # Git 형상관리 제외 설정
 │
 ├── database/                # 데이터베이스 세팅 및 복구 파일
 │   ├── BASEASON_shopdb3jo_backup.sql   # 전체 DB 테이블 스키마 + 샘플 데이터 완전 복구본
@@ -49,8 +48,7 @@ BASEOSON_final/
 │   ├── images/              # 상품 및 카테고리 배너 정적 이미지
 │   ├── uploads/             # 사용자 첨부파일 저장소
 │   ├── requirements.txt     # Python 의존성 라이브러리 목록
-│   ├── .env                 # DB 연결 설정 파일 (기본: shopdb3jo / 3306)
-│   └── run_backend.bat      # 백엔드 단독 실행 배치 스크립트
+│   └── .env                 # DB 연결 설정 파일 (기본: shopdb3jo / 3306)
 │
 └── frontend/                # React 19 + Vite 통합 프론트엔드
     ├── public/images/       # 전체 상품/배너/아이콘 정적 리소스
@@ -61,8 +59,7 @@ BASEOSON_final/
     │   ├── pages/           # 쇼핑몰 상세/주문서/마이페이지 컴포넌트
     │   ├── App.jsx          # 통합 포털 뷰어 & 역할(Role) 스위처
     │   └── api.js           # 공용 백엔드 REST API 통신 모듈
-    ├── package.json         # Node.js 패키지 정의
-    └── run_frontend.bat     # 프론트엔드 단독 실행 배치 스크립트
+    └── package.json         # Node.js 패키지 정의
 ```
 
 ---
@@ -129,13 +126,9 @@ BASEOSON_final/
 
 ### [Step 2] 백엔드 서버 실행 (포트 8000)
 
-#### 🔹 가장 쉬운 방법 (원클릭)
-`BASEOSON_final` 폴더에 있는 **`1_백엔드실행.bat`** 파일을 더블 클릭합니다.  
-자동으로 Python 가상환경을 만들고, 패키지를 설치한 후 서버(`http://127.0.0.1:8000`)를 시작합니다.
+터미널(또는 명령 프롬프트)을 열고 `backend` 디렉토리로 이동하여 서버를 실행합니다.
 
-#### 🔹 수동 터미널 실행 방법 (배치 파일 미작동 시)
-
-##### 방법 A. 초고속 `uv` 사용 (권장)
+#### 방법 A. 초고속 `uv` 사용 (권장)
 ```bash
 cd backend
 
@@ -150,7 +143,7 @@ uv pip install -r requirements.txt
 uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-##### 방법 B. 기본 `python / pip` 사용
+#### 방법 B. 기본 `python / pip` 사용
 ```bash
 cd backend
 
@@ -170,11 +163,8 @@ python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 
 ### [Step 3] 프론트엔드 포털 실행 (포트 5173)
 
-#### 🔹 가장 쉬운 방법 (원클릭)
-`BASEOSON_final` 폴더에 있는 **`2_프론트엔드실행.bat`** 파일을 더블 클릭합니다.  
-자동으로 `npm install`을 수행하고 Vite 개발 서버를 실행합니다.
+새 터미널 창을 열고 `frontend` 디렉토리로 이동하여 개발 서버를 실행합니다.
 
-#### 🔹 수동 터미널 실행 방법 (배치 파일 미작동 시)
 ```bash
 cd frontend
 
