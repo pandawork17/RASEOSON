@@ -41,7 +41,7 @@ BASEOSON_final/
 ├── README.md                # [본 문서] 타 컴퓨터 구동 및 실행 매뉴얼
 │
 ├── database/                # 데이터베이스 세팅 및 복구 파일
-│   ├── BASEASON_shopdb3jo_최종복구.sql   # 전체 DB 테이블 스키마 + 샘플 데이터 완전 복구본
+│   ├── BASEASON_shopdb3jo_backup.sql   # 전체 DB 테이블 스키마 + 샘플 데이터 완전 복구본
 │   └── setup_db_guide.txt              # DB 계정 생성 및 SQL 임포트 명령어 안내
 │
 ├── backend/                 # FastAPI 공용 백엔드 서버
@@ -80,6 +80,17 @@ BASEOSON_final/
    - 설치 확인: 터미널에서 `python --version` 입력
 3. **MySQL Server**: `8.0` 이상 (또는 MariaDB 10.6 이상)  
    - 다운로드: https://dev.mysql.com/downloads/installer/
+4. **uv** (권장 - 초고속 파이썬 패키지 및 가상환경 관리자)  
+   - pip 대비 수십 배 빠른 패키지 다운로드 및 설치를 지원합니다.
+   - **PowerShell 간편 설치 (Windows)**:
+     ```powershell
+     powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+     ```
+   - **또는 기본 pip로 설치**:
+     ```bash
+     pip install uv
+     ```
+   - 설치 확인: 터미널에서 `uv --version` 입력
 
 ---
 
@@ -105,12 +116,12 @@ BASEOSON_final/
    - **CLI 명령어 방식**:
      ```bash
      cd database
-     mysql -u shopdb3jo -p shopdb3jo < BASEASON_shopdb3jo_최종복구.sql
+     mysql -u shopdb3jo -p shopdb3jo < BASEASON_shopdb3jo_backup.sql
      # 비밀번호: shopdb3jo 입력
      ```
-   - **GUI 툴(Workbench / DBeaver) 방식**:
+   - **GUI 툴(Workbench / DBeaver / HeidiSQL) 방식**:
      - `shopdb3jo` 스키마 연결
-     - `database/BASEASON_shopdb3jo_최종복구.sql` 열기 -> **전체 실행(Execute Script)**
+     - `database/BASEASON_shopdb3jo_backup.sql` 열기 -> **전체 실행(Execute Script)**
 
 > **※ 참고**: 만약 본인 컴퓨터의 MySQL 비밀번호가 `root` / `1234` 등 다르게 설정되어 있다면, `backend/.env` 파일을 열어 `DB_USER`와 `DB_PASSWORD`를 본인 환경에 맞게 수정하시면 됩니다.
 
@@ -122,16 +133,36 @@ BASEOSON_final/
 `BASEOSON_final` 폴더에 있는 **`1_백엔드실행.bat`** 파일을 더블 클릭합니다.  
 자동으로 Python 가상환경을 만들고, 패키지를 설치한 후 서버(`http://127.0.0.1:8000`)를 시작합니다.
 
-#### 🔹 수동 터미널 실행 방법
+#### 🔹 수동 터미널 실행 방법 (배치 파일 미작동 시)
+
+##### 방법 A. 초고속 `uv` 사용 (권장)
 ```bash
 cd backend
-python -m venv .venv
-# 가상환경 활성화 (Windows)
+
+# 가상환경 생성 및 활성화
+uv venv .venv
 .venv\Scripts\activate
+
+# 의존성 패키지 설치
+uv pip install -r requirements.txt
+
+# FastAPI 서버 가동
+uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+##### 방법 B. 기본 `python / pip` 사용
+```bash
+cd backend
+
+# 가상환경 생성 및 활성화
+python -m venv .venv
+.venv\Scripts\activate
+
 # 의존성 패키지 설치
 pip install -r requirements.txt
+
 # FastAPI 서버 가동
-uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 - **정상 실행 확인**: 웹 브라우저에서 `http://127.0.0.1:8000/docs` 접속 시 Swagger API 문서가 열립니다.
 
@@ -143,12 +174,17 @@ uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
 `BASEOSON_final` 폴더에 있는 **`2_프론트엔드실행.bat`** 파일을 더블 클릭합니다.  
 자동으로 `npm install`을 수행하고 Vite 개발 서버를 실행합니다.
 
-#### 🔹 수동 터미널 실행 방법
+#### 🔹 수동 터미널 실행 방법 (배치 파일 미작동 시)
 ```bash
 cd frontend
+
+# 1. 패키지 의존성 설치 (최초 1회 필수)
 npm install
+
+# 2. Vite 개발 서버 실행
 npm run dev
 ```
+> **※ 참고**: 혹시 `npm install` 중 peer dependency 충돌 경고가 발생할 경우 `npm install --legacy-peer-deps` 를 입력해 주시면 정상 설치됩니다.
 - **정상 실행 확인**: 웹 브라우저에서 **`http://localhost:5173`** 으로 접속합니다.
 
 ---

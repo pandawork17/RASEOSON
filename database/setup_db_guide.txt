@@ -26,11 +26,11 @@
 2. SQL 덤프 파일 임포트 (데이터 복구)
    명령 프롬프트(cmd)에서 이 폴더(database)로 이동 후 아래 명령 실행:
 
-   mysql -u shopdb3jo -p shopdb3jo < BASEASON_shopdb3jo_최종복구.sql
+   mysql -u shopdb3jo -p shopdb3jo < BASEASON_shopdb3jo_backup.sql
    (비밀번호 입력 창이 뜨면: shopdb3jo 입력)
 
    ※ MySQL Workbench 또는 DBeaver 등 GUI 툴을 사용할 경우:
    - 'shopdb3jo' 데이터베이스를 열고
-   - 'BASEASON_shopdb3jo_최종복구.sql' 파일을 열어서 전체 실행(Execute All)하시면 됩니다.
+   - 'BASEASON_shopdb3jo_backup.sql' 파일을 열어서 전체 실행(Execute All)하시면 됩니다.
 ==========================================================
 
