@@ -1,0 +1,36 @@
+==========================================================
+  BASEOSON (3조) 데이터베이스 세팅 가이드
+==========================================================
+
+1. MySQL 접속 및 데이터베이스/사용자 생성
+   MySQL Command Line Client 또는 터미널에서 root로 접속:
+   mysql -u root -p
+
+   다음 SQL 문을 순서대로 실행합니다:
+
+   -- 1) 데이터베이스 생성
+   CREATE DATABASE IF NOT EXISTS shopdb3jo 
+   DEFAULT CHARACTER SET utf8mb4 
+   COLLATE utf8mb4_unicode_ci;
+
+   -- 2) 프로젝트 전용 계정 생성 및 권한 부여
+   CREATE USER IF NOT EXISTS 'shopdb3jo'@'%' IDENTIFIED BY 'shopdb3jo';
+   CREATE USER IF NOT EXISTS 'shopdb3jo'@'localhost' IDENTIFIED BY 'shopdb3jo';
+   GRANT ALL PRIVILEGES ON shopdb3jo.* TO 'shopdb3jo'@'%';
+   GRANT ALL PRIVILEGES ON shopdb3jo.* TO 'shopdb3jo'@'localhost';
+   FLUSH PRIVILEGES;
+
+   -- 3) 종료
+   exit
+
+2. SQL 덤프 파일 임포트 (데이터 복구)
+   명령 프롬프트(cmd)에서 이 폴더(database)로 이동 후 아래 명령 실행:
+
+   mysql -u shopdb3jo -p shopdb3jo < BASEASON_shopdb3jo_최종복구.sql
+   (비밀번호 입력 창이 뜨면: shopdb3jo 입력)
+
+   ※ MySQL Workbench 또는 DBeaver 등 GUI 툴을 사용할 경우:
+   - 'shopdb3jo' 데이터베이스를 열고
+   - 'BASEASON_shopdb3jo_최종복구.sql' 파일을 열어서 전체 실행(Execute All)하시면 됩니다.
+==========================================================
+
